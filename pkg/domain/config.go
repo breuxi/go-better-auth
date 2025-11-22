@@ -29,8 +29,10 @@ type Config struct {
 // Functional Options
 // =======================
 
-// NewConfig builds a Config using functional options.
-func NewConfig() *Config {
+type ConfigOption func(*Config)
+
+// NewConfig builds a Config using functional options with sensible defaults.
+func NewConfig(opts ...ConfigOption) *Config {
 	baseURL := os.Getenv("GO_BETTER_AUTH_URL")
 	if baseURL == "" {
 		baseURL = "http://localhost:8080"
@@ -47,6 +49,7 @@ func NewConfig() *Config {
 		secret = "go-better-auth-secret-0123456789"
 	}
 
+	// Define sensible defaults first
 	c := &Config{
 		AppName:  "GoBetterAuth",
 		BaseURL:  baseURL,
@@ -83,6 +86,12 @@ func NewConfig() *Config {
 		DatabaseHooks: DatabaseHooksConfig{},
 		Hooks:         HooksConfig{},
 	}
+
+	// Apply the options
+	for _, opt := range opts {
+		opt(c)
+	}
+
 	return c
 }
 
@@ -216,65 +225,77 @@ type HooksConfig struct {
 }
 
 // =======================
-// Builder Methods
+// Functional Options
 // =======================
 
-func (c *Config) WithAppName(name string) *Config {
-	c.AppName = name
-	return c
+func WithAppName(name string) ConfigOption {
+	return func(c *Config) {
+		c.AppName = name
+	}
 }
 
-func (c *Config) WithBaseURL(url string) *Config {
-	c.BaseURL = url
-	return c
+func WithBaseURL(url string) ConfigOption {
+	return func(c *Config) {
+		c.BaseURL = url
+	}
 }
 
-func (c *Config) WithBasePath(path string) *Config {
-	c.BasePath = path
-	return c
+func WithBasePath(path string) ConfigOption {
+	return func(c *Config) {
+		c.BasePath = path
+	}
 }
 
-func (c *Config) WithSecret(secret string) *Config {
-	c.Secret = secret
-	return c
+func WithSecret(secret string) ConfigOption {
+	return func(c *Config) {
+		c.Secret = secret
+	}
 }
 
-func (c *Config) WithDatabase(db DatabaseConfig) *Config {
-	c.Database = db
-	return c
+func WithDatabase(db DatabaseConfig) ConfigOption {
+	return func(c *Config) {
+		c.Database = db
+	}
 }
 
-func (c *Config) WithEmailPassword(config EmailPasswordConfig) *Config {
-	c.EmailPassword = config
-	return c
+func WithEmailPassword(config EmailPasswordConfig) ConfigOption {
+	return func(c *Config) {
+		c.EmailPassword = config
+	}
 }
 
-func (c *Config) WithEmailVerification(config EmailVerificationConfig) *Config {
-	c.EmailVerification = config
-	return c
+func WithEmailVerification(config EmailVerificationConfig) ConfigOption {
+	return func(c *Config) {
+		c.EmailVerification = config
+	}
 }
 
-func (c *Config) WithUser(userConfig UserConfig) *Config {
-	c.User = userConfig
-	return c
+func WithUser(userConfig UserConfig) ConfigOption {
+	return func(c *Config) {
+		c.User = userConfig
+	}
 }
 
-func (c *Config) WithSession(sessionConfig SessionConfig) *Config {
-	c.Session = sessionConfig
-	return c
+func WithSession(sessionConfig SessionConfig) ConfigOption {
+	return func(c *Config) {
+		c.Session = sessionConfig
+	}
 }
 
-func (c *Config) WithTrustedOrigins(trustedOriginsConfig TrustedOriginsConfig) *Config {
-	c.TrustedOrigins = trustedOriginsConfig
-	return c
+func WithTrustedOrigins(trustedOriginsConfig TrustedOriginsConfig) ConfigOption {
+	return func(c *Config) {
+		c.TrustedOrigins = trustedOriginsConfig
+	}
 }
 
-func (c *Config) WithDatabaseHooks(databaseHooksConfig DatabaseHooksConfig) *Config {
-	c.DatabaseHooks = databaseHooksConfig
-	return c
+func WithDatabaseHooks(databaseHooksConfig DatabaseHooksConfig) ConfigOption {
+	return func(c *Config) {
+		c.DatabaseHooks = databaseHooksConfig
+	}
 }
 
-func (c *Config) WithHooks(hooksConfig HooksConfig) *Config {
-	c.Hooks = hooksConfig
-	return c
+func WithHooks(hooksConfig HooksConfig) ConfigOption {
+	return func(c *Config) {
+		c.Hooks = hooksConfig
+	}
 }
