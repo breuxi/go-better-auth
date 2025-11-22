@@ -73,12 +73,15 @@ This will automatically select the workspace folder. But if you need to find the
 
 2. **Project Structure**
 
-- Code is organised by Go Clean Architecture:
-  - `domain/` – core models and interfaces
-  - `usecase/` – business logic
-  - `repository/` – data access implementations
-  - `handler/` – HTTP handlers
-  - `infrastructure/` – configurations and tooling
+- Code is organised as follows:
+  - `internal/` - application code
+    - `auth/` - business logic for authentication and authorization
+    - `handlers/` - HTTP handlers for various routes
+    - `middleware/` - HTTP middleware
+    - `router/` - HTTP router
+    - `util/` - utility functions
+  - `pkg/` - exposes domain models and utilities for external use when using this library in a Go API 
+  - `migrations/` - database migration files
 
 3. **Testing**
 
