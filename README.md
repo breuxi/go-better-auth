@@ -33,9 +33,9 @@
 
 - 🔑 **Email & Password Authentication** – Secure, production-ready authentication with argon2 password hashing
 - ✉️ **Email Verification** – Configurable email verification workflow
-- 🔄 **Password Reset** – Secure password reset with customizable email callbacks
+- 🔄 **Password Reset** – Secure password reset with customisable email callbacks
 - 🔄 **Change Email** – Securely change your email
-- 🔐 **Session Management** – Secure, customizable session handling with refresh and expiration controls
+- 🔐 **Session Management** – Secure, customisable session handling with refresh and expiration controls
 - 💾 **Multiple Database Support** – SQLite, PostgreSQL, MySQL adapters and more, with migration scripts included
 - 📦 **Minimal Dependencies** – Standard library first, production-ready, and framework-agnostic
 - 🧩 **Comprehensive Configuration** – Flexible, type-safe config with sensible defaults and environment variable support
