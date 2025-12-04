@@ -30,7 +30,7 @@ func (h *ResetPasswordHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := util.Validate.Struct(payload); err != nil {
-		util.JSONResponse(w, http.StatusUnprocessableEntity, map[string]any{"message": "validation failed"})
+		util.JSONResponse(w, http.StatusUnprocessableEntity, map[string]any{"message": err.Error()})
 		return
 	}
 
