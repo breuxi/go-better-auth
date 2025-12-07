@@ -14,6 +14,7 @@ var (
 	ErrTokenGenerationFailed = errors.New("token generation failed")
 	ErrTokenExpired          = errors.New("token expired")
 	ErrInvalidToken          = errors.New("invalid token")
+	ErrNoRefreshToken        = errors.New("no refresh token available")
 
 	// Session errors
 	ErrSessionNotFound       = errors.New("session not found")
@@ -26,9 +27,10 @@ var (
 	ErrVerificationInvalid  = errors.New("invalid verification token")
 
 	// Account errors
-	ErrAccountNotFound       = errors.New("account not found")
-	ErrAccountCreationFailed = errors.New("account creation failed")
-	ErrAccountUpdateFailed   = errors.New("account update failed")
+	ErrAccountNotFound        = errors.New("account not found")
+	ErrAccountCreationFailed  = errors.New("account creation failed")
+	ErrAccountUpdateFailed    = errors.New("account update failed")
+	ErrAccountLinkingRequired = errors.New("account linking required: user exists with a different provider")
 
 	// Email verification errors
 	ErrEmailVerificationFailed = errors.New("email verification failed")
@@ -43,4 +45,9 @@ var (
 
 	// Configuration errors
 	ErrConfigInvalid = errors.New("invalid configuration")
+
+	// OAuth2 errors
+	ErrOAuth2ProviderNotConfigured = errors.New("oauth2 provider not configured")
+	ErrOAuth2ExchangeFailed        = errors.New("oauth2 token exchange failed")
+	ErrOAuth2UserInfoFailed        = errors.New("failed to get oauth2 user info")
 )
