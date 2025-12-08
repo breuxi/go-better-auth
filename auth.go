@@ -154,13 +154,13 @@ func (auth *Auth) Handler() http.Handler {
 	// Routes
 	r.Handle("POST "+basePath+"/sign-in/email", signIn.Handler())
 	r.Handle("POST "+basePath+"/sign-up/email", signUp.Handler())
-	r.Handle("POST "+basePath+"/email-verification", auth.AuthMiddleware()(sendEmailVerification.Handler()))
+	r.Handle("POST "+basePath+"/email-verification", auth.AuthMiddleware()(auth.CSRFMiddleware()(sendEmailVerification.Handler())))
 	r.Handle("GET "+basePath+"/verify-email", verifyEmail.Handler())
-	r.Handle("POST "+basePath+"/sign-out", signOut.Handler())
+	r.Handle("POST "+basePath+"/sign-out", auth.AuthMiddleware()(auth.CSRFMiddleware()(signOut.Handler())))
 	r.Handle("POST "+basePath+"/reset-password", resetPassword.Handler())
 	r.Handle("POST "+basePath+"/change-password", changePassword.Handler())
 	r.Handle("POST "+basePath+"/email-change", changeEmailRequest.Handler())
-	r.Handle("GET "+basePath+"/me", auth.AuthMiddleware()(me.Handler()))
+	r.Handle("GET "+basePath+"/me", auth.AuthMiddleware()(auth.CSRFMiddleware()(me.Handler())))
 	r.Handle("GET "+basePath+"/oauth2/{provider}/login", oauth2Login.Handler())
 	r.Handle("GET "+basePath+"/oauth2/{provider}/callback", oauth2Callback.Handler())
 
@@ -186,6 +186,10 @@ func (auth *Auth) CorsAuthMiddleware() func(http.Handler) http.Handler {
 	return middleware.CorsMiddleware(
 		auth.Config.TrustedOrigins.Origins,
 	)
+}
+
+func (auth *Auth) CSRFMiddleware() func(http.Handler) http.Handler {
+	return middleware.CSRFMiddleware(auth.Config.CSRF)
 }
 
 func constructAuthService(config *domain.Config, db *gorm.DB) *auth.Service {

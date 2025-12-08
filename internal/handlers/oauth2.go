@@ -167,11 +167,29 @@ func (h *OAuth2CallbackHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(h.Config.Session.ExpiresIn),
 	})
 
+	if h.Config.CSRF.Enabled {
+		csrfToken, err := h.AuthService.TokenService.GenerateToken()
+		if err != nil {
+			util.JSONResponse(w, http.StatusInternalServerError, map[string]any{"message": "failed to generate CSRF token"})
+			return
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:     h.Config.CSRF.CookieName,
+			Value:    csrfToken,
+			Path:     "/",
+			HttpOnly: false,
+			Secure:   isSecure,
+			SameSite: sameSite,
+			MaxAge:   int(h.Config.CSRF.ExpiresIn.Seconds()),
+		})
+	}
+
 	target := "/"
 	if cookie, err := r.Cookie("oauth2_redirect_to"); err == nil {
-		rt := cookie.Value
-		if util.IsTrustedRedirect(rt, h.Config.TrustedOrigins.Origins) {
-			target = rt
+		redirectTo := cookie.Value
+		if util.IsTrustedRedirect(redirectTo, h.Config.TrustedOrigins.Origins) {
+			target = redirectTo
 		}
 	}
 

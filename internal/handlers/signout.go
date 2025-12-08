@@ -33,15 +33,29 @@ func (h *SignOutHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	isSecure, sameSite := util.GetCookieOptions(h.Config)
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     h.Config.Session.CookieName,
 		Value:    "",
-		MaxAge:   -1,
 		Path:     "/",
+		MaxAge:   -1,
 		HttpOnly: true,
-		SameSite: http.SameSiteNoneMode,
-		Secure:   true,
+		Secure:   isSecure,
+		SameSite: sameSite,
 	})
+
+	if h.Config.CSRF.Enabled {
+		http.SetCookie(w, &http.Cookie{
+			Name:     h.Config.CSRF.CookieName,
+			Value:    "",
+			Path:     "/",
+			MaxAge:   -1,
+			HttpOnly: false,
+			Secure:   isSecure,
+			SameSite: sameSite,
+		})
+	}
 
 	resp := SignOutResponse{Message: "Signed out successfully"}
 	util.JSONResponse(w, http.StatusOK, resp)

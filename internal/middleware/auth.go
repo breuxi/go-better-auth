@@ -2,11 +2,13 @@ package middleware
 
 import (
 	"context"
+	"crypto/subtle"
 	"net/http"
 	"slices"
 
 	"github.com/GoBetterAuth/go-better-auth/internal/auth"
 	"github.com/GoBetterAuth/go-better-auth/internal/util"
+	"github.com/GoBetterAuth/go-better-auth/pkg/domain"
 )
 
 type ctxKey string
@@ -66,6 +68,43 @@ func CorsMiddleware(allowedOrigins []string) func(http.Handler) http.Handler {
 			// Handle preflight requests
 			if r.Method == http.MethodOptions {
 				w.WriteHeader(http.StatusNoContent)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func CSRFMiddleware(csrfConfig domain.CSRFConfig) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodGet ||
+				r.Method == http.MethodHead ||
+				r.Method == http.MethodOptions {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			if !csrfConfig.Enabled {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			cookie, err := r.Cookie(csrfConfig.CookieName)
+			if err != nil {
+				util.JSONResponse(w, http.StatusForbidden, map[string]any{"message": "missing CSRF cookie"})
+				return
+			}
+
+			header := r.Header.Get(csrfConfig.HeaderName)
+			if header == "" {
+				util.JSONResponse(w, http.StatusForbidden, map[string]any{"message": "missing CSRF header"})
+				return
+			}
+
+			if subtle.ConstantTimeCompare([]byte(cookie.Value), []byte(header)) != 1 {
+				util.JSONResponse(w, http.StatusForbidden, map[string]any{"message": "invalid CSRF token"})
 				return
 			}
 
