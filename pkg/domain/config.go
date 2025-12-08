@@ -270,7 +270,7 @@ func NewConfig(opts ...ConfigOption) *Config {
 			ChangeEmail: ChangeEmailConfig{},
 		},
 		Session: SessionConfig{
-			CookieName: "go-better-auth.session_token",
+			CookieName: "gobetterauth.session_token",
 			ExpiresIn:  7 * 24 * time.Hour,
 			UpdateAge:  24 * time.Hour,
 		},
