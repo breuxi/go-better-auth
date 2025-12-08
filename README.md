@@ -31,15 +31,12 @@
 
 ### Features
 
-- 🔑 **Email & Password Authentication** – Secure, production-ready authentication with argon2 password hashing
-- ✉️ **Email Verification** – Configurable email verification workflow
-- 🔄 **Password Reset** – Secure password reset with customisable email callbacks
-- 🔄 **Change Email** – Securely change your email
-- 🔐 **Session Management** – Secure, customisable session handling with refresh and expiration controls
-- 🌐 **Social OAuth Providers** – Google, GitHub, Discord and more.
-- 💾 **Multiple Database Support** – SQLite, PostgreSQL, MySQL adapters and more, with migration scripts included
-- 📦 **Minimal Dependencies** – Standard library first, production-ready, and framework-agnostic
-- 🧩 **Comprehensive Configuration** – Flexible, type-safe config with sensible defaults and environment variable support
+- 🔑 **Email & Password** – Secure, production-ready authentication with argon2 password hashing. Includes Email Verification, Password Reset and Change Email flows.
+- 🌐 **Social OAuth Providers** – Google, GitHub, Discord and more coming soon.
+- 💾 **Multiple Database Support** – SQLite, PostgreSQL, MySQL adapters and more coming soon, with migration scripts included.
+- 📦 **Minimal Dependencies** – Standard library first, production-ready, and framework-agnostic.
+- 🧩 **Comprehensive Configuration** – Flexible, type-safe config with sensible defaults and environment variable support.
+- 🛡️ **Enhanced Security** – CSRF protection.
 
 ---
 
@@ -53,10 +50,8 @@ For more info and a full guide on how to use this library, check out the [Docs](
 
 Planned features:
 
-- 🔌 **Plugin System** – Extensible plugin architecture for custom business logic and routes. Including flexible plugin interface to implement all kinds of plugins with third party providers.
-- 🛡️ **Enhanced Security** – CSRF protection and more.
+- 🔌 **Plugin System** – Extensible plugin architecture for custom business logic and routes. Including flexible plugin interface to implement all kinds of plugins.
 - ⚡ **Rate Limiting** – Configurable, per-endpoint rate limiting with memory or database storage
-- 🔁 **Token Refresh Flow** – Automatic token refresh and session extension
 
 ---
 
