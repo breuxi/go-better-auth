@@ -92,6 +92,3 @@ func (s *Service) DeleteSession(sessionToken string) error {
 
 	return nil
 }
-
-// Define missing error variable
-var ErrSessionExpired = fmt.Errorf("session expired")

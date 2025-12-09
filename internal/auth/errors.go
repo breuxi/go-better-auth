@@ -20,6 +20,7 @@ var (
 	ErrSessionNotFound       = errors.New("session not found")
 	ErrSessionCreationFailed = errors.New("session creation failed")
 	ErrSessionDeletionFailed = errors.New("session deletion failed")
+	ErrSessionExpired        = errors.New("session expired")
 
 	// Verification errors
 	ErrVerificationNotFound = errors.New("verification token not found")
