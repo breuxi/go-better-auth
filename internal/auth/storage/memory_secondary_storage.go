@@ -28,7 +28,7 @@ type MemorySecondaryStorage struct {
 	done chan struct{}
 }
 
-func NewMemorySecondaryStorage(config *domain.SecondaryStorageMemoryConfig) *MemorySecondaryStorage {
+func NewMemorySecondaryStorage(config *domain.SecondaryStorageMemoryOptions) *MemorySecondaryStorage {
 	cleanupInterval := 1 * time.Minute
 	if config != nil {
 		if config.CleanupInterval != 0 {

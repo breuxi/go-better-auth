@@ -30,7 +30,7 @@ func newTestDB(t *testing.T) *gorm.DB {
 
 // Helper function to create a database storage with default config
 func newTestDatabaseStorage(t *testing.T, db *gorm.DB) *DatabaseSecondaryStorage {
-	return NewDatabaseSecondaryStorage(db, &domain.SecondaryStorageDatabaseConfig{
+	return NewDatabaseSecondaryStorage(db, &domain.SecondaryStorageDatabaseOptions{
 		CleanupInterval: 1 * time.Minute,
 	})
 }

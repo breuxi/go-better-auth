@@ -22,7 +22,7 @@ type DatabaseSecondaryStorage struct {
 	done chan struct{}
 }
 
-func NewDatabaseSecondaryStorage(db *gorm.DB, config *domain.SecondaryStorageDatabaseConfig) *DatabaseSecondaryStorage {
+func NewDatabaseSecondaryStorage(db *gorm.DB, config *domain.SecondaryStorageDatabaseOptions) *DatabaseSecondaryStorage {
 	cleanupInterval := 1 * time.Minute
 	if config != nil {
 		if config.CleanupInterval != 0 {

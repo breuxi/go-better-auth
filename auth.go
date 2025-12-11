@@ -18,33 +18,34 @@ import (
 	"github.com/GoBetterAuth/go-better-auth/pkg/domain"
 )
 
-// Auth is the main struct exposing the unified handler
+// ---------------------------------
+// INITIALISATION
+// ---------------------------------
+
 type Auth struct {
 	Config      *domain.Config
 	DB          *gorm.DB
 	authService *auth.Service
 }
 
-// New initializes the Auth library with GORM
 func New(config *domain.Config, db *gorm.DB) *Auth {
 	util.InitValidator()
 
-	var dbToUse *gorm.DB
 	if db == nil {
 		var err error
 		switch config.Database.Provider {
 		case "sqlite":
-			dbToUse, err = gorm.Open(
+			db, err = gorm.Open(
 				sqlite.Open(config.Database.ConnectionString),
 				&gorm.Config{},
 			)
 		case "postgres":
-			dbToUse, err = gorm.Open(
+			db, err = gorm.Open(
 				postgres.Open(config.Database.ConnectionString),
 				&gorm.Config{},
 			)
 		case "mysql":
-			dbToUse, err = gorm.Open(
+			db, err = gorm.Open(
 				mysql.Open(config.Database.ConnectionString),
 				&gorm.Config{},
 			)
@@ -57,19 +58,60 @@ func New(config *domain.Config, db *gorm.DB) *Auth {
 			panic(err)
 		}
 	} else {
-		dbToUse = db
+		// Validate the provided DB's provider
+		switch db.Dialector.(type) {
+		case *sqlite.Dialector:
+			if config.Database.Provider != "sqlite" {
+				panic("provided database provider does not match config: expected sqlite")
+			}
+		case *postgres.Dialector:
+			if config.Database.Provider != "postgres" {
+				panic("provided database provider does not match config: expected postgres")
+			}
+		case *mysql.Dialector:
+			if config.Database.Provider != "mysql" {
+				panic("provided database provider does not match config: expected mysql")
+			}
+		default:
+			panic("unsupported database provider for provided DB instance")
+		}
 	}
 
-	if config.SecondaryStorage.Storage == nil {
-		config.SecondaryStorage.Storage = storage.NewMemorySecondaryStorage(nil)
-	}
+	initStorage(config, db)
 
 	return &Auth{
 		Config:      config,
-		DB:          dbToUse,
-		authService: constructAuthService(config, dbToUse),
+		DB:          db,
+		authService: constructAuthService(config, db),
 	}
 }
+
+func initStorage(config *domain.Config, db *gorm.DB) {
+	if config.SecondaryStorage.Type == "" {
+		if config.SecondaryStorage.Storage != nil {
+			panic("secondary storage type of 'custom' must be specified")
+		}
+
+		// Default to in-memory secondary storage
+		config.SecondaryStorage.Type = domain.SecondaryStorageTypeMemory
+		config.SecondaryStorage.Storage = storage.NewMemorySecondaryStorage(config.SecondaryStorage.MemoryOptions)
+	} else {
+		switch config.SecondaryStorage.Type {
+		case domain.SecondaryStorageTypeMemory:
+			config.SecondaryStorage.Storage = storage.NewMemorySecondaryStorage(config.SecondaryStorage.MemoryOptions)
+		case domain.SecondaryStorageTypeDatabase:
+			config.SecondaryStorage.Storage = storage.NewDatabaseSecondaryStorage(db, config.SecondaryStorage.DatabaseOptions)
+		case domain.SecondaryStorageTypeCustom:
+			// Valid, do nothing
+		default:
+			panic("unsupported secondary storage type: " + config.SecondaryStorage.Type)
+		}
+	}
+}
+
+// ---------------------------------
+// MIGRATIONS
+// ---------------------------------
 
 func (auth *Auth) RunMigrations() {
 	models := []any{
@@ -103,6 +145,10 @@ func (auth *Auth) DropMigrations() {
 		}
 	}
 }
+
+// ---------------------------------
+// MIDDLEWARES & HANDLERS
+// ---------------------------------
 
 func constructAuthService(config *domain.Config, db *gorm.DB) *auth.Service {
 	userService := auth.NewUserService(config, db)

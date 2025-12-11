@@ -23,7 +23,10 @@ type DatabaseConfig struct {
 // =======================
 
 type SecondaryStorageConfig struct {
-	Storage SecondaryStorage
+	Type            SecondaryStorageType
+	MemoryOptions   *SecondaryStorageMemoryOptions
+	DatabaseOptions *SecondaryStorageDatabaseOptions
+	Storage         SecondaryStorage
 }
 
 // =======================
@@ -317,6 +320,9 @@ func NewConfig(opts ...ConfigOption) *Config {
 			ExpiresIn:  7 * 24 * time.Hour,
 		},
 		TrustedOrigins: TrustedOriginsConfig{},
+		SecondaryStorage: SecondaryStorageConfig{
+			Type: SecondaryStorageTypeMemory,
+		},
 		RateLimit: RateLimitConfig{
 			Enabled:   false,
 			Window:    1 * time.Minute,
