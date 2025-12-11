@@ -205,20 +205,16 @@ func (auth *Auth) EndpointHooksMiddleware() func(http.Handler) http.Handler {
 	return middleware.EndpointHooksMiddleware(auth.Config, auth.authService)
 }
 
-// RegisterRoute registers a custom route under the library's auth path.
-// The path should be relative to the base path and should not include the leading slash.
-// For example, to add a route at /auth/custom, pass path as: "custom".
 func (auth *Auth) RegisterRoute(route domain.CustomRoute) {
-	if route.Method == "" {
-		panic("route method cannot be empty")
+	originalHandler := route.Handler
+	route.Handler = func(config *domain.Config) http.Handler {
+		handler := originalHandler(config)
+		finalHandler := handler
+		for i := len(route.Middleware) - 1; i >= 0; i-- {
+			finalHandler = route.Middleware[i](finalHandler)
+		}
+		return finalHandler
 	}
-	if route.Path == "" {
-		panic("route path cannot be empty")
-	}
-	if route.Handler == nil {
-		panic("route handler cannot be nil")
-	}
-
 	auth.customRoutes = append(auth.customRoutes, route)
 }
 
