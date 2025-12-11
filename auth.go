@@ -1,6 +1,7 @@
 package gobetterauth
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -23,9 +24,10 @@ import (
 // ---------------------------------
 
 type Auth struct {
-	Config      *domain.Config
-	DB          *gorm.DB
-	authService *auth.Service
+	Config       *domain.Config
+	DB           *gorm.DB
+	authService  *auth.Service
+	customRoutes []domain.CustomRoute
 }
 
 func New(config *domain.Config, db *gorm.DB) *Auth {
@@ -80,9 +82,10 @@ func New(config *domain.Config, db *gorm.DB) *Auth {
 	initStorage(config, db)
 
 	return &Auth{
-		Config:      config,
-		DB:          db,
-		authService: constructAuthService(config, db),
+		Config:       config,
+		DB:           db,
+		authService:  constructAuthService(config, db),
+		customRoutes: []domain.CustomRoute{},
 	}
 }
 
@@ -202,6 +205,23 @@ func (auth *Auth) EndpointHooksMiddleware() func(http.Handler) http.Handler {
 	return middleware.EndpointHooksMiddleware(auth.Config, auth.authService)
 }
 
+// RegisterRoute registers a custom route under the library's auth path.
+// The path should be relative to the base path and should not include the leading slash.
+// For example, to add a route at /auth/custom, pass path as: "custom".
+func (auth *Auth) RegisterRoute(route domain.CustomRoute) {
+	if route.Method == "" {
+		panic("route method cannot be empty")
+	}
+	if route.Path == "" {
+		panic("route path cannot be empty")
+	}
+	if route.Handler == nil {
+		panic("route handler cannot be nil")
+	}
+
+	auth.customRoutes = append(auth.customRoutes, route)
+}
+
 func (auth *Auth) Handler() http.Handler {
 	r := http.NewServeMux()
 
@@ -261,7 +281,7 @@ func (auth *Auth) Handler() http.Handler {
 		basePath = basePath[:len(basePath)-1]
 	}
 
-	// Routes
+	// Base routes
 	r.Handle("POST "+basePath+"/sign-in/email", signIn.Handler())
 	r.Handle("POST "+basePath+"/sign-up/email", signUp.Handler())
 	r.Handle("POST "+basePath+"/email-verification", auth.AuthMiddleware()(auth.CSRFMiddleware()(sendEmailVerification.Handler())))
@@ -273,6 +293,12 @@ func (auth *Auth) Handler() http.Handler {
 	r.Handle("GET "+basePath+"/me", auth.AuthMiddleware()(me.Handler()))
 	r.Handle("GET "+basePath+"/oauth2/{provider}/login", oauth2Login.Handler())
 	r.Handle("GET "+basePath+"/oauth2/{provider}/callback", oauth2Callback.Handler())
+
+	// Register custom routes
+	for _, customRoute := range auth.customRoutes {
+		path := fmt.Sprintf("%s/%s", basePath, customRoute.Path)
+		r.Handle(fmt.Sprintf("%s %s", customRoute.Method, path), customRoute.Handler(auth.Config))
+	}
 
 	var finalHandler http.Handler = r
 	finalHandler = middleware.EndpointHooksMiddleware(auth.Config, auth.authService)(finalHandler)
