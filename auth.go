@@ -275,10 +275,10 @@ func (auth *Auth) Handler() http.Handler {
 	r.Handle("GET "+basePath+"/oauth2/{provider}/callback", oauth2Callback.Handler())
 
 	var finalHandler http.Handler = r
+	finalHandler = middleware.EndpointHooksMiddleware(auth.Config, auth.authService)(finalHandler)
 	if auth.Config.RateLimit.Enabled {
 		finalHandler = auth.RateLimitMiddleware()(finalHandler)
 	}
-	finalHandler = middleware.EndpointHooksMiddleware(auth.Config, auth.authService)(finalHandler)
 
 	return finalHandler
 }
