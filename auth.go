@@ -1,6 +1,7 @@
 package gobetterauth
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -153,6 +154,20 @@ func (auth *Auth) RateLimitMiddleware() func(http.Handler) http.Handler {
 
 func (auth *Auth) EndpointHooksMiddleware() func(http.Handler) http.Handler {
 	return middleware.EndpointHooksMiddleware(auth.Config, auth.authService)
+}
+
+func (auth *Auth) GetUserIDFromContext(ctx context.Context) (string, bool) {
+	value := ctx.Value(middleware.ContextUserID)
+	if value == nil {
+		return "", false
+	}
+	id, ok := value.(string)
+
+	return id, ok
+}
+
+func (auth *Auth) GetUserIDFromRequest(r *http.Request) (string, bool) {
+	return auth.GetUserIDFromContext(r.Context())
 }
 
 func (auth *Auth) RegisterRoute(route domain.CustomRoute) {
