@@ -368,8 +368,14 @@ func WithEventBus(eventBusConfig models.EventBusConfig) models.ConfigOption {
 		if eventBusConfig.Enabled {
 			defaults.Enabled = eventBusConfig.Enabled
 		}
+		if eventBusConfig.Prefix != "" {
+			defaults.Prefix = eventBusConfig.Prefix
+		}
 		if eventBusConfig.MaxConcurrentHandlers != 0 {
 			defaults.MaxConcurrentHandlers = eventBusConfig.MaxConcurrentHandlers
+		}
+		if eventBusConfig.PubSub != nil {
+			defaults.PubSub = eventBusConfig.PubSub
 		}
 
 		c.EventBus = defaults

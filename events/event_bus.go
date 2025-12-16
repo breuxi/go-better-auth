@@ -45,14 +45,6 @@ type eventBus struct {
 }
 
 func NewEventBus(config *models.Config, ps models.PubSub) models.EventBus {
-	if config == nil {
-		panic("eventbus: config must not be nil")
-	}
-
-	if ps == nil {
-		ps = NewInMemoryPubSub()
-	}
-
 	rootCtx, cancel := context.WithCancel(context.Background())
 
 	maxHandlers := config.EventBus.MaxConcurrentHandlers
