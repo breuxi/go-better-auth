@@ -147,6 +147,20 @@ func (auth *Auth) DropMigrations() {
 			panic(err)
 		}
 	}
+
+	for _, plugin := range auth.pluginRegistry.Plugins() {
+		migrations := plugin.Migrations()
+		if len(migrations) == 0 {
+			continue
+		}
+
+		for _, model := range migrations {
+			if err := auth.Config.DB.Migrator().DropTable(model); err != nil {
+				slog.Error("failed to drop table", slog.Any("model", model), slog.Any("error", err))
+				panic(err)
+			}
+		}
+	}
 }
 
 // ---------------------------------
