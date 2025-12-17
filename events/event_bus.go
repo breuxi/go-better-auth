@@ -49,6 +49,10 @@ func NewEventBus(config *models.Config, ps models.PubSub) models.EventBus {
 
 	maxHandlers := config.EventBus.MaxConcurrentHandlers
 
+	if ps == nil {
+		ps = NewInMemoryPubSub()
+	}
+
 	return &eventBus{
 		config:     config,
 		pubsub:     ps,

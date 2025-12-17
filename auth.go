@@ -38,9 +38,6 @@ func New(config *models.Config) *Auth {
 
 	var eventBus models.EventBus
 	if config.EventBus.Enabled {
-		if config.EventBus.PubSub == nil {
-			config.EventBus.PubSub = events.NewInMemoryPubSub()
-		}
 		eventBus = events.NewEventBus(config, config.EventBus.PubSub)
 	}
 
