@@ -74,14 +74,14 @@ This will automatically select the workspace folder. But if you need to find the
 2. **Project Structure**
 
 - Code is organised as follows:
-  - `internal/` - application code
-    - `auth/` - business logic for authentication and authorization
-    - `handlers/` - HTTP handlers for various routes
-    - `middleware/` - HTTP middleware
-    - `router/` - HTTP router
-    - `util/` - utility functions
-  - `pkg/` - exposes domain models and utilities for external use when using this library in a Go API 
+  - `cmd/` - standalone mode to run the auth server
+  - `config/` - configuration loading and management
+  - `events/` - event bus and event handling
+  - `internal/` - internal packages not exposed outside the module
   - `migrations/` - database migration files
+  - `models/` - database models, interfaces etc.
+  - `providers/` - social auth providers
+  - `storage/` - database and secondary storage adapters
 
 3. **Testing**
 
@@ -92,7 +92,7 @@ This will automatically select the workspace folder. But if you need to find the
   make test
 
   # Run specific tests
-  go test -v ./usecase/auth -run TestSignUp|TestSignIn
+  go test -v ./path/to/package -function TestName
   ```
 
 4. **Making Changes**
