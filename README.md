@@ -2,10 +2,6 @@
   <img src="./project-logo.png" height="150" width="150" alt="Project Logo"/>
 </p>
 
-<p align="center">
- A comprehensive, framework-agnostic authentication and authorization library for Go.
-</p>
-
 ---
 
 ### Table of Contents
@@ -21,11 +17,7 @@
 
 ✨ Overview
 
-**GoBetterAuth** is an open-source authentication solution that scales with you. Embed it as a library in your Go app, or run it as a standalone auth server for any language or framework. It provides secure email/password authentication, session management, email verification, password reset, and more, all built with clean architecture.
-
-💭 Why GoBetterAuth?
-
-**GoBetterAuth** offers a robust authentication and authorization solution built using Go, yet flexible enough to integrate with any technology stack. It streamlines the implementation of essential security features through a clean, modular architecture, allowing developers to concentrate on building their applications without the overhead of managing authentication complexities.
+**GoBetterAuth** is an open-source authentication solution that scales with you. Embed it as a library in your Go app, or run it as a standalone auth server for any language or framework. It provides secure email/password authentication, session management, email verification, password reset, and more, all built with clean architecture. **GoBetterAuth** is flexible enough to integrate with any technology stack. It streamlines the implementation of essential security features through a clean, modular architecture, allowing developers to concentrate on building their applications without the overhead of managing authentication complexities.
 
 ---
 
