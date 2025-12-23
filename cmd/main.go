@@ -15,8 +15,8 @@ import (
 	"github.com/joho/godotenv"
 
 	gobetterauth "github.com/GoBetterAuth/go-better-auth"
-	"github.com/GoBetterAuth/go-better-auth/config"
-	"github.com/GoBetterAuth/go-better-auth/models"
+	gobetterauthconfig "github.com/GoBetterAuth/go-better-auth/config"
+	gobetterauthmodels "github.com/GoBetterAuth/go-better-auth/models"
 )
 
 func getEnv(key, fallback string) string {
@@ -74,29 +74,29 @@ func runServer(port string, restartChan chan struct{}, shutdownChan chan os.Sign
 	applyConfigDefaults(&tomlConfig)
 
 	// Build config using functional options pattern to ensure all fields are set
-	authConfig := config.NewConfig(
-		config.WithMode(models.ModeStandalone),
-		config.WithAppName(tomlConfig.AppName),
-		config.WithBaseURL(tomlConfig.BaseURL),
-		config.WithBasePath(tomlConfig.BasePath),
-		config.WithSecret(tomlConfig.Secret),
-		config.WithLogger(tomlConfig.Logger),
-		config.WithDatabase(tomlConfig.Database),
-		config.WithEmailConfig(tomlConfig.Email),
-		config.WithSecondaryStorage(tomlConfig.SecondaryStorage),
-		config.WithEmailPassword(tomlConfig.EmailPassword),
-		config.WithEmailVerification(tomlConfig.EmailVerification),
-		config.WithUser(tomlConfig.User),
-		config.WithSession(tomlConfig.Session),
-		config.WithCSRF(tomlConfig.CSRF),
-		config.WithSocialProviders(tomlConfig.SocialProviders),
-		config.WithTrustedOrigins(tomlConfig.TrustedOrigins),
-		config.WithRateLimit(tomlConfig.RateLimit),
-		config.WithEventBus(tomlConfig.EventBus),
-		config.WithEndpointHooks(tomlConfig.EndpointHooks),
-		config.WithDatabaseHooks(tomlConfig.DatabaseHooks),
-		config.WithEventHooks(tomlConfig.EventHooks),
-		config.WithWebhooks(tomlConfig.Webhooks),
+	authConfig := gobetterauthconfig.NewConfig(
+		gobetterauthconfig.WithMode(gobetterauthmodels.ModeStandalone),
+		gobetterauthconfig.WithAppName(tomlConfig.AppName),
+		gobetterauthconfig.WithBaseURL(tomlConfig.BaseURL),
+		gobetterauthconfig.WithBasePath(tomlConfig.BasePath),
+		gobetterauthconfig.WithSecret(tomlConfig.Secret),
+		gobetterauthconfig.WithLogger(tomlConfig.Logger),
+		gobetterauthconfig.WithDatabase(tomlConfig.Database),
+		gobetterauthconfig.WithEmailConfig(tomlConfig.Email),
+		gobetterauthconfig.WithSecondaryStorage(tomlConfig.SecondaryStorage),
+		gobetterauthconfig.WithEmailPassword(tomlConfig.EmailPassword),
+		gobetterauthconfig.WithEmailVerification(tomlConfig.EmailVerification),
+		gobetterauthconfig.WithUser(tomlConfig.User),
+		gobetterauthconfig.WithSession(tomlConfig.Session),
+		gobetterauthconfig.WithCSRF(tomlConfig.CSRF),
+		gobetterauthconfig.WithSocialProviders(tomlConfig.SocialProviders),
+		gobetterauthconfig.WithTrustedOrigins(tomlConfig.TrustedOrigins),
+		gobetterauthconfig.WithRateLimit(tomlConfig.RateLimit),
+		gobetterauthconfig.WithEventBus(tomlConfig.EventBus),
+		gobetterauthconfig.WithEndpointHooks(tomlConfig.EndpointHooks),
+		gobetterauthconfig.WithDatabaseHooks(tomlConfig.DatabaseHooks),
+		gobetterauthconfig.WithEventHooks(tomlConfig.EventHooks),
+		gobetterauthconfig.WithWebhooks(tomlConfig.Webhooks),
 	)
 
 	auth := gobetterauth.New(authConfig)
@@ -174,9 +174,9 @@ func runServer(port string, restartChan chan struct{}, shutdownChan chan os.Sign
 }
 
 // loadConfigFromFile attempts to load configuration from TOML file if it exists
-func loadConfigFromFile() models.Config {
+func loadConfigFromFile() gobetterauthmodels.Config {
 	configPath := getEnv("GO_BETTER_AUTH_CONFIG_PATH", "config.toml")
-	var config models.Config
+	var config gobetterauthmodels.Config
 
 	if _, err := os.Stat(configPath); err != nil {
 		// File doesn't exist, return empty config - will use env vars and defaults
@@ -191,7 +191,7 @@ func loadConfigFromFile() models.Config {
 }
 
 // applyConfigDefaults applies environment variable overrides and sensible defaults
-func applyConfigDefaults(config *models.Config) {
+func applyConfigDefaults(config *gobetterauthmodels.Config) {
 	// Override other critical settings from environment variables
 	if baseURL := os.Getenv("GO_BETTER_AUTH_BASE_URL"); baseURL != "" {
 		config.BaseURL = baseURL
