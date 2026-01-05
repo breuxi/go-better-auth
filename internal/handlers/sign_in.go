@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	signin "github.com/GoBetterAuth/go-better-auth/internal/auth/sign-in"
-	"github.com/GoBetterAuth/go-better-auth/internal/common"
 	"github.com/GoBetterAuth/go-better-auth/internal/util"
 	"github.com/GoBetterAuth/go-better-auth/models"
 )
@@ -65,6 +64,6 @@ func (h *SignInHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	util.JSONResponse(w, http.StatusOK, result)
 }
 
-func (h *SignInHandler) Handler() models.CustomRouteHandler {
-	return common.WrapHandler(h)
+func (h *SignInHandler) Handler() models.RouteHandler {
+	return models.WrapHandler(h)
 }

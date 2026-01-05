@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	sendemailverification "github.com/GoBetterAuth/go-better-auth/internal/auth/send-email-verification"
-	"github.com/GoBetterAuth/go-better-auth/internal/common"
 	"github.com/GoBetterAuth/go-better-auth/internal/middleware"
 	"github.com/GoBetterAuth/go-better-auth/internal/util"
 	"github.com/GoBetterAuth/go-better-auth/models"
@@ -50,6 +49,6 @@ func (h *SendEmailVerificationHandler) Handle(w http.ResponseWriter, r *http.Req
 	util.JSONResponse(w, http.StatusOK, resp)
 }
 
-func (h *SendEmailVerificationHandler) Handler() models.CustomRouteHandler {
-	return common.WrapHandler(h)
+func (h *SendEmailVerificationHandler) Handler() models.RouteHandler {
+	return models.WrapHandler(h)
 }

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	internaloauth2 "github.com/GoBetterAuth/go-better-auth/internal/auth/oauth2"
-	"github.com/GoBetterAuth/go-better-auth/internal/common"
 	"github.com/GoBetterAuth/go-better-auth/internal/util"
 	"github.com/GoBetterAuth/go-better-auth/models"
 )
@@ -74,8 +73,8 @@ func (h *OAuth2LoginHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, loginResult.AuthURL, http.StatusTemporaryRedirect)
 }
 
-func (h *OAuth2LoginHandler) Handler() models.CustomRouteHandler {
-	return common.WrapHandler(h)
+func (h *OAuth2LoginHandler) Handler() models.RouteHandler {
+	return models.WrapHandler(h)
 }
 
 type OAuth2CallbackHandler struct {
@@ -194,6 +193,6 @@ func (h *OAuth2CallbackHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, target, http.StatusTemporaryRedirect)
 }
 
-func (h *OAuth2CallbackHandler) Handler() models.CustomRouteHandler {
-	return common.WrapHandler(h)
+func (h *OAuth2CallbackHandler) Handler() models.RouteHandler {
+	return models.WrapHandler(h)
 }

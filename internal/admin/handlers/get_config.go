@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/GoBetterAuth/go-better-auth/internal/common"
 	"github.com/GoBetterAuth/go-better-auth/internal/util"
 	"github.com/GoBetterAuth/go-better-auth/models"
 )
@@ -17,6 +16,6 @@ func (h *AdminGetConfigHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	util.JSONResponse(w, http.StatusOK, config)
 }
 
-func (h *AdminGetConfigHandler) Handler() models.CustomRouteHandler {
-	return common.WrapHandler(h)
+func (h *AdminGetConfigHandler) Handler() models.RouteHandler {
+	return models.WrapHandler(h)
 }

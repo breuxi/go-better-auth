@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	signup "github.com/GoBetterAuth/go-better-auth/internal/auth/sign-up"
-	"github.com/GoBetterAuth/go-better-auth/internal/common"
 	"github.com/GoBetterAuth/go-better-auth/internal/util"
 	"github.com/GoBetterAuth/go-better-auth/models"
 )
@@ -73,6 +72,6 @@ func (h *SignUpHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	util.JSONResponse(w, http.StatusOK, result)
 }
 
-func (h *SignUpHandler) Handler() models.CustomRouteHandler {
-	return common.WrapHandler(h)
+func (h *SignUpHandler) Handler() models.RouteHandler {
+	return models.WrapHandler(h)
 }

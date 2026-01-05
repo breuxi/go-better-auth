@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/GoBetterAuth/go-better-auth/internal/common"
 	"github.com/GoBetterAuth/go-better-auth/internal/util"
 	"github.com/GoBetterAuth/go-better-auth/models"
 )
@@ -61,6 +60,6 @@ func flatten(prefix string, m map[string]any, result map[string]any) {
 	}
 }
 
-func (h *AdminUpdateConfigHandler) Handler() models.CustomRouteHandler {
-	return common.WrapHandler(h)
+func (h *AdminUpdateConfigHandler) Handler() models.RouteHandler {
+	return models.WrapHandler(h)
 }

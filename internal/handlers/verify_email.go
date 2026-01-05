@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	verifyemail "github.com/GoBetterAuth/go-better-auth/internal/auth/verify-email"
-	"github.com/GoBetterAuth/go-better-auth/internal/common"
 	"github.com/GoBetterAuth/go-better-auth/internal/util"
 	"github.com/GoBetterAuth/go-better-auth/models"
 )
@@ -36,6 +35,6 @@ func (h *VerifyEmailHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	util.JSONResponse(w, http.StatusOK, result)
 }
 
-func (h *VerifyEmailHandler) Handler() models.CustomRouteHandler {
-	return common.WrapHandler(h)
+func (h *VerifyEmailHandler) Handler() models.RouteHandler {
+	return models.WrapHandler(h)
 }

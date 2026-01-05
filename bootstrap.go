@@ -256,6 +256,11 @@ func InitEventBus(config *models.Config) (models.EventBus, error) {
 	return events.NewEventBus(config, pubsub), nil
 }
 
+// InitWebhookExecutor creates and returns a WebhookExecutor
+func InitWebhookExecutor(config *models.Config) models.WebhookExecutor {
+	return internalevents.NewWebhookExecutor(config.Logger.Logger)
+}
+
 func InitServices(config *models.Config, configManager models.ConfigManager, eventBus models.EventBus, pluginRateLimits []models.PluginRateLimit) *internalauth.Service {
 	userService := services.NewUserServiceImpl(config, config.DB)
 	accountService := services.NewAccountServiceImpl(config, config.DB)
@@ -299,8 +304,8 @@ func InitApi(config *models.Config, authService *internalauth.Service) models.Au
 	)
 }
 
-func InitPluginRegistry(config *models.Config, api models.AuthApi, eventBus models.EventBus, apiMiddleware *models.ApiMiddleware) models.PluginRegistry {
-	pluginRegistry := plugins.NewPluginRegistry(config, api, eventBus, apiMiddleware)
+func InitPluginRegistry(config *models.Config, api models.AuthApi, eventBus models.EventBus, apiMiddleware *models.ApiMiddleware, webhookExecutor models.WebhookExecutor) models.PluginRegistry {
+	pluginRegistry := plugins.NewPluginRegistry(config, api, eventBus, apiMiddleware, webhookExecutor)
 	for _, p := range config.Plugins.Plugins {
 		pluginRegistry.Register(p)
 	}

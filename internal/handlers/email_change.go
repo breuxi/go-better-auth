@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	emailchange "github.com/GoBetterAuth/go-better-auth/internal/auth/email-change"
-	"github.com/GoBetterAuth/go-better-auth/internal/common"
 	"github.com/GoBetterAuth/go-better-auth/internal/constants"
 	"github.com/GoBetterAuth/go-better-auth/internal/middleware"
 	"github.com/GoBetterAuth/go-better-auth/internal/util"
@@ -57,6 +56,6 @@ func (h *EmailChangeHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	util.JSONResponse(w, http.StatusOK, resp)
 }
 
-func (h *EmailChangeHandler) Handler() models.CustomRouteHandler {
-	return common.WrapHandler(h)
+func (h *EmailChangeHandler) Handler() models.RouteHandler {
+	return models.WrapHandler(h)
 }

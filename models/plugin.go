@@ -1,9 +1,5 @@
 package models
 
-import (
-	"net/http"
-)
-
 type PluginMetadata struct {
 	Name        string
 	Version     string
@@ -22,17 +18,14 @@ type PluginContext struct {
 	EventBus        EventBus
 	Middleware      *ApiMiddleware
 	WebhookExecutor WebhookExecutor
+	Plugin          Plugin // Reference to the plugin being initialized
 }
-
-type PluginRouteMiddleware func(http.Handler) http.Handler
-
-type PluginRouteHandler func() http.Handler
 
 type PluginRoute struct {
 	Method     string
 	Path       string // Relative path, /auth is auto-prefixed
-	Middleware []PluginRouteMiddleware
-	Handler    PluginRouteHandler
+	Middleware []RouteMiddleware
+	Handler    RouteHandler
 }
 
 type PluginRateLimit = RateLimitConfig

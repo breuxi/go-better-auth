@@ -13,7 +13,12 @@ func BuildVerificationURL(baseURL string, basePath string, token string, callbac
 	q.Set("token", token)
 
 	if callbackURL != nil && *callbackURL != "" {
-		q.Set("callback_url", *callbackURL)
+		// Parse the callback URL and add token as query parameter
+		callbackUrlObj, _ := url.Parse(*callbackURL)
+		callbackQuery := callbackUrlObj.Query()
+		callbackQuery.Set("token", token)
+		callbackUrlObj.RawQuery = callbackQuery.Encode()
+		q.Set("callback_url", callbackUrlObj.String())
 	}
 
 	url.RawQuery = q.Encode()

@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	me "github.com/GoBetterAuth/go-better-auth/internal/auth/me"
-	"github.com/GoBetterAuth/go-better-auth/internal/common"
 	"github.com/GoBetterAuth/go-better-auth/internal/middleware"
 	"github.com/GoBetterAuth/go-better-auth/internal/util"
 	"github.com/GoBetterAuth/go-better-auth/models"
@@ -39,6 +38,6 @@ func (h *MeHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	util.JSONResponse(w, http.StatusOK, result)
 }
 
-func (h *MeHandler) Handler() models.CustomRouteHandler {
-	return common.WrapHandler(h)
+func (h *MeHandler) Handler() models.RouteHandler {
+	return models.WrapHandler(h)
 }

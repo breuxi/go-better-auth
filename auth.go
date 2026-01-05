@@ -108,7 +108,8 @@ func New(baseConfig *models.Config) *Auth {
 	api := InitApi(activeConfig, authService)
 	auth.Api = api
 
-	pluginRegistry := InitPluginRegistry(activeConfig, api, eventBus, apiMiddleware)
+	webhookExecutor := InitWebhookExecutor(activeConfig)
+	pluginRegistry := InitPluginRegistry(activeConfig, api, eventBus, apiMiddleware, webhookExecutor)
 	auth.pluginRegistry = pluginRegistry
 
 	RunPluginMigrations(pluginRegistry)
@@ -254,8 +255,8 @@ func (auth *Auth) GetUserIDFromRequest(req *http.Request) (string, bool) {
 
 func (auth *Auth) RegisterRoute(route models.CustomRoute) {
 	originalHandler := route.Handler
-	route.Handler = func(config *models.Config) http.Handler {
-		handler := originalHandler(config)
+	route.Handler = func() http.Handler {
+		handler := originalHandler()
 		finalHandler := handler
 		for i := len(route.Middleware) - 1; i >= 0; i-- {
 			finalHandler = route.Middleware[i](finalHandler)
@@ -281,12 +282,12 @@ func (auth *Auth) Handler() http.Handler {
 	if auth.configManager != nil {
 		// We purposely set basePath to "" here so that admin routes are always available at /admin/*
 		adminRoutes := admin.GetRoutes(auth.Config, auth.configManager, auth.Service, "", auth.middleware)
-		auth.registerBaseRoutes(auth.Config, "", adminRoutes)
+		auth.registerBaseRoutes("", adminRoutes)
 	}
 
 	// Register Auth Base Routes
 	authBaseRoutes := handlers.GetRoutes(auth.Config, auth.Service, basePath, auth.middleware)
-	auth.registerBaseRoutes(auth.Config, basePath, authBaseRoutes)
+	auth.registerBaseRoutes(basePath, authBaseRoutes)
 
 	auth.registerPluginRoutes(basePath)
 
@@ -306,10 +307,10 @@ func (auth *Auth) Handler() http.Handler {
 }
 
 // registerBaseRoutes registers base routes
-func (auth *Auth) registerBaseRoutes(config *models.Config, basePath string, routes []models.CustomRoute) {
+func (auth *Auth) registerBaseRoutes(basePath string, routes []models.CustomRoute) {
 	for _, route := range routes {
 		path := fmt.Sprintf("%s%s", basePath, route.Path)
-		handler := route.Handler(config)
+		handler := route.Handler()
 
 		for i := len(route.Middleware) - 1; i >= 0; i-- {
 			handler = route.Middleware[i](handler)

@@ -19,7 +19,7 @@ func GetRoutes(config *models.Config, configManager models.ConfigManager, authSe
 		{
 			Method: "GET",
 			Path:   "/admin/config",
-			Middleware: []models.CustomRouteMiddleware{
+			Middleware: []models.RouteMiddleware{
 				middleware.AdminAuth(),
 			},
 			Handler: getConfigHandler.Handler(),
@@ -27,7 +27,7 @@ func GetRoutes(config *models.Config, configManager models.ConfigManager, authSe
 		{
 			Method: "PATCH",
 			Path:   "/admin/config",
-			Middleware: []models.CustomRouteMiddleware{
+			Middleware: []models.RouteMiddleware{
 				middleware.AdminAuth(),
 			},
 			Handler: updateConfigHandler.Handler(),

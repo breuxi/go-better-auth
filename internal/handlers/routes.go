@@ -67,7 +67,7 @@ func GetRoutes(config *models.Config, authService *auth.Service, basePath string
 		{
 			Method: "POST",
 			Path:   "/email-verification",
-			Middleware: []models.CustomRouteMiddleware{
+			Middleware: []models.RouteMiddleware{
 				middleware.Auth(),
 			},
 			Handler: sendEmailVerification.Handler(),
@@ -80,7 +80,7 @@ func GetRoutes(config *models.Config, authService *auth.Service, basePath string
 		{
 			Method: "POST",
 			Path:   "/sign-out",
-			Middleware: []models.CustomRouteMiddleware{
+			Middleware: []models.RouteMiddleware{
 				middleware.Auth(),
 				middleware.CSRF(),
 			},
@@ -104,7 +104,7 @@ func GetRoutes(config *models.Config, authService *auth.Service, basePath string
 		{
 			Method: "GET",
 			Path:   "/me",
-			Middleware: []models.CustomRouteMiddleware{
+			Middleware: []models.RouteMiddleware{
 				middleware.Auth(),
 			},
 			Handler: me.Handler(),

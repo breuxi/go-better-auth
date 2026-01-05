@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	signout "github.com/GoBetterAuth/go-better-auth/internal/auth/sign-out"
-	"github.com/GoBetterAuth/go-better-auth/internal/common"
 	"github.com/GoBetterAuth/go-better-auth/internal/util"
 	"github.com/GoBetterAuth/go-better-auth/models"
 )
@@ -62,6 +61,6 @@ func (h *SignOutHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	util.JSONResponse(w, http.StatusOK, resp)
 }
 
-func (h *SignOutHandler) Handler() models.CustomRouteHandler {
-	return common.WrapHandler(h)
+func (h *SignOutHandler) Handler() models.RouteHandler {
+	return models.WrapHandler(h)
 }

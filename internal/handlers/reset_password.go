@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	resetpassword "github.com/GoBetterAuth/go-better-auth/internal/auth/reset-password"
-	"github.com/GoBetterAuth/go-better-auth/internal/common"
 	"github.com/GoBetterAuth/go-better-auth/internal/util"
 	"github.com/GoBetterAuth/go-better-auth/models"
 )
@@ -49,6 +48,6 @@ func (h *ResetPasswordHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	util.JSONResponse(w, http.StatusOK, resp)
 }
 
-func (h *ResetPasswordHandler) Handler() models.CustomRouteHandler {
-	return common.WrapHandler(h)
+func (h *ResetPasswordHandler) Handler() models.RouteHandler {
+	return models.WrapHandler(h)
 }

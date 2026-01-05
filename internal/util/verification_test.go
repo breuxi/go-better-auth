@@ -8,8 +8,8 @@ func TestBuildVerificationURL_WithCallback(t *testing.T) {
 	baseURL := "https://example.com"
 	basePath := "/auth"
 	token := "abc123"
-	callback := "https://app.com/callback"
-	expected := "https://example.com/auth/verify-email?callback_url=https%3A%2F%2Fapp.com%2Fcallback&token=abc123"
+	callback := "https://app.com/callback?token=abc123"
+	expected := "https://example.com/auth/verify-email?callback_url=https%3A%2F%2Fapp.com%2Fcallback%3Ftoken%3Dabc123&token=abc123"
 
 	result := BuildVerificationURL(baseURL, basePath, token, &callback)
 	if result != expected {

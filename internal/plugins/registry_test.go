@@ -42,7 +42,7 @@ func getMockPlugin() models.Plugin {
 
 func TestNewPluginRegistry(t *testing.T) {
 	mockConfig := getMockConfig()
-	registry := NewPluginRegistry(mockConfig, nil, nil, nil)
+	registry := NewPluginRegistry(mockConfig, nil, nil, nil, nil)
 
 	assert.NotNil(t, registry)
 	assert.Equal(t, mockConfig, registry.config)
@@ -52,7 +52,7 @@ func TestNewPluginRegistry(t *testing.T) {
 
 func TestPluginRegistry_Register(t *testing.T) {
 	mockConfig := getMockConfig()
-	registry := NewPluginRegistry(mockConfig, nil, nil, nil)
+	registry := NewPluginRegistry(mockConfig, nil, nil, nil, nil)
 
 	plugin := getMockPlugin()
 	registry.Register(plugin)
@@ -64,7 +64,7 @@ func TestPluginRegistry_Register(t *testing.T) {
 func TestPluginRegistry_InitAll(t *testing.T) {
 	t.Run("should init enabled plugins", func(t *testing.T) {
 		mockConfig := getMockConfig()
-		registry := NewPluginRegistry(mockConfig, nil, nil, nil)
+		registry := NewPluginRegistry(mockConfig, nil, nil, nil, nil)
 
 		plugin1 := getMockPlugin()
 		plugin2 := getMockPlugin()
@@ -77,7 +77,7 @@ func TestPluginRegistry_InitAll(t *testing.T) {
 
 	t.Run("should return error on init fail", func(t *testing.T) {
 		mockConfig := getMockConfig()
-		registry := NewPluginRegistry(mockConfig, nil, nil, nil)
+		registry := NewPluginRegistry(mockConfig, nil, nil, nil, nil)
 
 		plugin := getMockPlugin()
 		plugin.SetInit(func(ctx *models.PluginContext) error {
@@ -97,7 +97,7 @@ func TestPluginRegistry_RunMigrations(t *testing.T) {
 
 	t.Run("should run migrations for enabled plugins", func(t *testing.T) {
 		mockConfig := getMockConfig()
-		registry := NewPluginRegistry(mockConfig, nil, nil, nil)
+		registry := NewPluginRegistry(mockConfig, nil, nil, nil, nil)
 
 		plugin1 := config.NewPlugin(
 			config.WithPluginMetadata(models.PluginMetadata{Name: "p1"}),
@@ -119,7 +119,7 @@ func TestPluginRegistry_RunMigrations(t *testing.T) {
 
 func TestPluginRegistry_Routes(t *testing.T) {
 	mockConfig := getMockConfig()
-	registry := NewPluginRegistry(mockConfig, nil, nil, nil)
+	registry := NewPluginRegistry(mockConfig, nil, nil, nil, nil)
 
 	plugin1 := config.NewPlugin(
 		config.WithPluginMetadata(models.PluginMetadata{Name: "p1"}),
@@ -153,7 +153,7 @@ func TestPluginRegistry_Routes(t *testing.T) {
 
 func TestPluginRegistry_Plugins(t *testing.T) {
 	mockConfig := getMockConfig()
-	registry := NewPluginRegistry(mockConfig, nil, nil, nil)
+	registry := NewPluginRegistry(mockConfig, nil, nil, nil, nil)
 
 	plugin1 := config.NewPlugin(
 		config.WithPluginMetadata(models.PluginMetadata{Name: "p1"}),
@@ -174,7 +174,7 @@ func TestPluginRegistry_Plugins(t *testing.T) {
 func TestPluginRegistry_CloseAll(t *testing.T) {
 	t.Run("should close enabled plugins", func(t *testing.T) {
 		mockConfig := getMockConfig()
-		registry := NewPluginRegistry(mockConfig, nil, nil, nil)
+		registry := NewPluginRegistry(mockConfig, nil, nil, nil, nil)
 
 		plugin1 := config.NewPlugin(
 			config.WithPluginMetadata(models.PluginMetadata{Name: "p1"}),
@@ -192,7 +192,7 @@ func TestPluginRegistry_CloseAll(t *testing.T) {
 
 	t.Run("should log error on close fail", func(t *testing.T) {
 		mockConfig := getMockConfig()
-		registry := NewPluginRegistry(mockConfig, nil, nil, nil)
+		registry := NewPluginRegistry(mockConfig, nil, nil, nil, nil)
 
 		plugin := config.NewPlugin(
 			config.WithPluginMetadata(models.PluginMetadata{Name: "p1"}),
