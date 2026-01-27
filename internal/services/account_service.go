@@ -1,102 +1,172 @@
 package services
 
 import (
-	"log/slog"
+	"context"
 	"time"
 
-	"github.com/google/uuid"
-	"gorm.io/gorm"
-
+	"github.com/GoBetterAuth/go-better-auth/internal/repositories"
+	"github.com/GoBetterAuth/go-better-auth/internal/util"
 	"github.com/GoBetterAuth/go-better-auth/models"
+	"github.com/GoBetterAuth/go-better-auth/services"
 )
 
-type AccountServiceImpl struct {
-	config *models.Config
-	db     *gorm.DB
+type accountService struct {
+	config      *models.Config
+	accountRepo repositories.AccountRepository
+	tokenRepo   repositories.TokenRepository
+	hooks       *models.CoreDatabaseHooks
 }
 
-func NewAccountServiceImpl(config *models.Config, db *gorm.DB) *AccountServiceImpl {
-	return &AccountServiceImpl{config: config, db: db}
+func NewAccountService(
+	config *models.Config,
+	accountRepo repositories.AccountRepository,
+	tokenRepo repositories.TokenRepository,
+	hooks *models.CoreDatabaseHooks,
+) services.AccountService {
+	return &accountService{config: config, accountRepo: accountRepo, tokenRepo: tokenRepo, hooks: hooks}
 }
-
-// CreateAccount creates a new account in the database.
-func (s *AccountServiceImpl) CreateAccount(a *models.Account) error {
-	if a.ID == "" {
-		a.ID = uuid.NewString()
+func (s *accountService) Create(ctx context.Context, userID string, accountID string, providerID string, password *string) (*models.Account, error) {
+	account := &models.Account{
+		ID:         util.GenerateUUID(),
+		UserID:     userID,
+		AccountID:  accountID,
+		ProviderID: providerID,
+		Password:   password,
 	}
-	a.CreatedAt = time.Now().UTC()
-	a.UpdatedAt = time.Now().UTC()
 
-	if s.config.DatabaseHooks.Accounts != nil && s.config.DatabaseHooks.Accounts.BeforeCreate != nil {
-		if err := s.config.DatabaseHooks.Accounts.BeforeCreate(a); err != nil {
-			return err
+	if s.hooks != nil && s.hooks.Accounts != nil && s.hooks.Accounts.BeforeCreate != nil {
+		if err := s.hooks.Accounts.BeforeCreate(account); err != nil {
+			return nil, err
 		}
 	}
 
-	if err := s.db.Create(a).Error; err != nil {
-		return err
-	}
-
-	if s.config.DatabaseHooks.Accounts != nil && s.config.DatabaseHooks.Accounts.AfterCreate != nil {
-		go func() {
-			if err := s.config.DatabaseHooks.Accounts.AfterCreate(*a); err != nil {
-				slog.Error("account after create hook failed", "error", err.Error())
-			}
-		}()
-	}
-
-	return nil
-}
-
-// GetAccountByUserID retrieves an account by the associated user ID.
-func (s *AccountServiceImpl) GetAccountByUserID(userID string) (*models.Account, error) {
-	var account models.Account
-	if err := s.db.Where("user_id = ?", userID).First(&account).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
-		}
+	created, err := s.accountRepo.Create(ctx, account)
+	if err != nil {
 		return nil, err
 	}
-	return &account, nil
+
+	if s.hooks != nil && s.hooks.Accounts != nil && s.hooks.Accounts.AfterCreate != nil {
+		if err := s.hooks.Accounts.AfterCreate(*created); err != nil {
+			return nil, err
+		}
+	}
+
+	return created, nil
 }
 
-// GetAccountByProviderAndAccountID retrieves an account by provider and provider's account ID.
-func (s *AccountServiceImpl) GetAccountByProviderAndAccountID(provider models.ProviderType, accountID string) (*models.Account, error) {
-	var account models.Account
-	if err := s.db.Where("provider_id = ? AND account_id = ?", provider, accountID).First(&account).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
-		}
+func (s *accountService) CreateOAuth2(ctx context.Context, userID string, providerAccountID string, provider string, accessToken string, refreshToken *string, accessTokenExpiresAt *time.Time, refreshTokenExpiresAt *time.Time, scope *string) (*models.Account, error) {
+	encryptedAccessToken, err := s.tokenRepo.Encrypt(accessToken)
+	if err != nil {
 		return nil, err
 	}
-	return &account, nil
-}
 
-// UpdateAccount updates an existing account in the database.
-func (s *AccountServiceImpl) UpdateAccount(account *models.Account) error {
-	account.UpdatedAt = time.Now().UTC()
+	var encryptedRefreshToken *string
+	if refreshToken != nil {
+		encrypted, err := s.tokenRepo.Encrypt(*refreshToken)
+		if err != nil {
+			return nil, err
+		}
+		encryptedRefreshToken = &encrypted
+	}
 
-	if s.config.DatabaseHooks.Accounts != nil && s.config.DatabaseHooks.Accounts.BeforeUpdate != nil {
-		if err := s.config.DatabaseHooks.Accounts.BeforeUpdate(account); err != nil {
-			return err
+	existing, err := s.accountRepo.GetByProviderAndAccountID(ctx, provider, providerAccountID)
+	if err != nil {
+		return nil, err
+	}
+	if existing != nil {
+		// Update existing account
+		existing.AccessToken = &encryptedAccessToken
+		existing.RefreshToken = encryptedRefreshToken
+		existing.AccessTokenExpiresAt = accessTokenExpiresAt
+		existing.RefreshTokenExpiresAt = refreshTokenExpiresAt
+		existing.Scope = scope
+
+		if s.hooks != nil && s.hooks.Accounts != nil && s.hooks.Accounts.BeforeUpdate != nil {
+			if err := s.hooks.Accounts.BeforeUpdate(existing); err != nil {
+				return nil, err
+			}
+		}
+
+		updated, err := s.accountRepo.Update(ctx, existing)
+		if err != nil {
+			return nil, err
+		}
+
+		if s.hooks != nil && s.hooks.Accounts != nil && s.hooks.Accounts.AfterUpdate != nil {
+			if err := s.hooks.Accounts.AfterUpdate(*updated); err != nil {
+				return nil, err
+			}
+		}
+
+		return updated, nil
+	}
+
+	account := &models.Account{
+		ID:                    util.GenerateUUID(),
+		UserID:                userID,
+		AccountID:             providerAccountID,
+		ProviderID:            provider,
+		AccessToken:           &encryptedAccessToken,
+		RefreshToken:          encryptedRefreshToken,
+		AccessTokenExpiresAt:  accessTokenExpiresAt,
+		RefreshTokenExpiresAt: refreshTokenExpiresAt,
+		Password:              nil,
+		Scope:                 scope,
+	}
+
+	if s.hooks != nil && s.hooks.Accounts != nil && s.hooks.Accounts.BeforeCreate != nil {
+		if err := s.hooks.Accounts.BeforeCreate(account); err != nil {
+			return nil, err
 		}
 	}
 
-	result := s.db.Model(&models.Account{}).Where("id = ?", account.ID).Updates(account)
-	if result.Error != nil {
-		return result.Error
-	}
-	if result.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
+	created, err := s.accountRepo.Create(ctx, account)
+	if err != nil {
+		return nil, err
 	}
 
-	if s.config.DatabaseHooks.Accounts != nil && s.config.DatabaseHooks.Accounts.AfterUpdate != nil {
-		go func() {
-			if err := s.config.DatabaseHooks.Accounts.AfterUpdate(*account); err != nil {
-				slog.Error("account after update hook failed", "error", err.Error())
-			}
-		}()
+	if s.hooks != nil && s.hooks.Accounts != nil && s.hooks.Accounts.AfterCreate != nil {
+		if err := s.hooks.Accounts.AfterCreate(*created); err != nil {
+			return nil, err
+		}
 	}
 
-	return nil
+	return created, nil
+}
+
+func (s *accountService) GetByUserID(ctx context.Context, userID string) (*models.Account, error) {
+	return s.accountRepo.GetByUserID(ctx, userID)
+}
+
+func (s *accountService) GetByUserIDAndProvider(ctx context.Context, userID, provider string) (*models.Account, error) {
+	return s.accountRepo.GetByUserIDAndProvider(ctx, userID, provider)
+}
+
+func (s *accountService) GetByProviderAndAccountID(ctx context.Context, provider, accountID string) (*models.Account, error) {
+	return s.accountRepo.GetByProviderAndAccountID(ctx, provider, accountID)
+}
+
+func (s *accountService) Update(ctx context.Context, account *models.Account) (*models.Account, error) {
+	if s.hooks != nil && s.hooks.Accounts != nil && s.hooks.Accounts.BeforeUpdate != nil {
+		if err := s.hooks.Accounts.BeforeUpdate(account); err != nil {
+			return nil, err
+		}
+	}
+
+	updatedAccount, err := s.accountRepo.Update(ctx, account)
+	if err != nil {
+		return nil, err
+	}
+
+	if s.hooks != nil && s.hooks.Accounts != nil && s.hooks.Accounts.AfterUpdate != nil {
+		if err := s.hooks.Accounts.AfterUpdate(*updatedAccount); err != nil {
+			return nil, err
+		}
+	}
+
+	return updatedAccount, nil
+}
+
+func (s *accountService) UpdateFields(ctx context.Context, userID string, fields map[string]any) error {
+	return s.accountRepo.UpdateFields(ctx, userID, fields)
 }

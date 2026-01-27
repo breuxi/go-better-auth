@@ -1,72 +1,88 @@
 package services
 
 import (
-	"log/slog"
+	"context"
+	"fmt"
 	"time"
 
-	"github.com/google/uuid"
-	"gorm.io/gorm"
-
+	"github.com/GoBetterAuth/go-better-auth/internal/repositories"
+	"github.com/GoBetterAuth/go-better-auth/internal/security"
+	"github.com/GoBetterAuth/go-better-auth/internal/util"
 	"github.com/GoBetterAuth/go-better-auth/models"
+	"github.com/GoBetterAuth/go-better-auth/services"
 )
 
-type VerificationServiceImpl struct {
-	config *models.Config
-	db     *gorm.DB
+type verificationService struct {
+	repo   repositories.VerificationRepository
+	signer security.TokenSigner
+	hooks  *models.CoreDatabaseHooks
 }
 
-func NewVerificationServiceImpl(config *models.Config, db *gorm.DB) *VerificationServiceImpl {
-	return &VerificationServiceImpl{config: config, db: db}
+func NewVerificationService(
+	repo repositories.VerificationRepository,
+	signer security.TokenSigner,
+	hooks *models.CoreDatabaseHooks,
+) services.VerificationService {
+	return &verificationService{
+		repo:   repo,
+		signer: signer,
+		hooks:  hooks,
+	}
 }
 
-// Creates a new verification record
-func (s *VerificationServiceImpl) CreateVerification(v *models.Verification) error {
-	v.ID = uuid.NewString()
+func (s *verificationService) Create(
+	ctx context.Context,
+	userID string,
+	hashedToken string,
+	vType models.VerificationType,
+	value string,
+	expiry time.Duration,
+) (*models.Verification, error) {
+	if hashedToken == "" {
+		return nil, fmt.Errorf("hashedToken cannot be empty")
+	}
 
-	now := time.Now().UTC()
-	v.CreatedAt = now
-	v.UpdatedAt = now
-	v.ExpiresAt = now.Add(time.Hour)
+	verification := &models.Verification{
+		ID:         util.GenerateUUID(),
+		UserID:     &userID,
+		Identifier: value,
+		Token:      hashedToken,
+		Type:       vType,
+		ExpiresAt:  time.Now().UTC().Add(expiry),
+	}
 
-	if s.config.DatabaseHooks.Verifications != nil && s.config.DatabaseHooks.Verifications.BeforeCreate != nil {
-		if err := s.config.DatabaseHooks.Verifications.BeforeCreate(v); err != nil {
-			return err
+	if s.hooks != nil && s.hooks.Verifications != nil && s.hooks.Verifications.BeforeCreate != nil {
+		if err := s.hooks.Verifications.BeforeCreate(verification); err != nil {
+			return nil, err
 		}
 	}
 
-	if err := s.db.Create(v).Error; err != nil {
-		return err
-	}
-
-	if s.config.DatabaseHooks.Verifications != nil && s.config.DatabaseHooks.Verifications.AfterCreate != nil {
-		go func() {
-			if err := s.config.DatabaseHooks.Verifications.AfterCreate(*v); err != nil {
-				slog.Error("verification after create hook failed", "error", err.Error())
-			}
-		}()
-	}
-
-	return nil
-}
-
-// Retrieves a verification record by token
-func (s *VerificationServiceImpl) GetVerificationByToken(token string) (*models.Verification, error) {
-	var v models.Verification
-	if err := s.db.Where("token = ?", token).First(&v).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
-		}
+	created, err := s.repo.Create(ctx, verification)
+	if err != nil {
 		return nil, err
 	}
-	return &v, nil
+
+	if s.hooks != nil && s.hooks.Verifications != nil && s.hooks.Verifications.AfterCreate != nil {
+		if err := s.hooks.Verifications.AfterCreate(*created); err != nil {
+			return nil, err
+		}
+	}
+
+	return created, nil
 }
 
-// Deletes a verification record by ID
-func (s *VerificationServiceImpl) DeleteVerification(id string) error {
-	return s.db.Delete(&models.Verification{}, "id = ?", id).Error
+func (s *verificationService) GetByToken(ctx context.Context, hashedToken string) (*models.Verification, error) {
+	return s.repo.GetByToken(ctx, hashedToken)
 }
 
-// Checks if the verification token is expired
-func (s *VerificationServiceImpl) IsExpired(verification *models.Verification) bool {
-	return time.Now().UTC().After(verification.ExpiresAt)
+func (s *verificationService) Delete(ctx context.Context, id string) error {
+	return s.repo.Delete(ctx, id)
+}
+
+func (s *verificationService) DeleteByUserIDAndType(ctx context.Context, userID string, vType models.VerificationType) error {
+	return s.repo.DeleteByUserIDAndType(ctx, userID, vType)
+}
+
+func (s *verificationService) IsExpired(v *models.Verification) bool {
+	return time.Now().UTC().After(v.ExpiresAt)
 }

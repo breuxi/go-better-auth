@@ -1,96 +1,87 @@
 package services
 
 import (
-	"log/slog"
-	"time"
+	"context"
+	"errors"
 
-	"github.com/google/uuid"
-	"gorm.io/gorm"
-
+	"github.com/GoBetterAuth/go-better-auth/internal/repositories"
+	"github.com/GoBetterAuth/go-better-auth/internal/util"
 	"github.com/GoBetterAuth/go-better-auth/models"
+	"github.com/GoBetterAuth/go-better-auth/services"
 )
 
-type UserServiceImpl struct {
-	config *models.Config
-	db     *gorm.DB
+type userService struct {
+	repo  repositories.UserRepository
+	hooks *models.CoreDatabaseHooks
 }
 
-func NewUserServiceImpl(config *models.Config, db *gorm.DB) *UserServiceImpl {
-	return &UserServiceImpl{config: config, db: db}
+func NewUserService(repo repositories.UserRepository, hooks *models.CoreDatabaseHooks) services.UserService {
+	return &userService{repo: repo, hooks: hooks}
 }
 
-// CreateUser creates a new user in the database.
-func (s *UserServiceImpl) CreateUser(user *models.User) error {
-	user.ID = uuid.NewString()
-	user.CreatedAt = time.Now().UTC()
-	user.UpdatedAt = time.Now().UTC()
+func (s *userService) Create(ctx context.Context, name string, email string, emailVerified bool, image *string) (*models.User, error) {
+	existing, _ := s.repo.GetByEmail(ctx, email)
+	if existing != nil {
+		return nil, errors.New("email already in use")
+	}
 
-	if s.config.DatabaseHooks.Users != nil && s.config.DatabaseHooks.Users.BeforeCreate != nil {
-		if err := s.config.DatabaseHooks.Users.BeforeCreate(user); err != nil {
-			return err
+	user := &models.User{
+		ID:            util.GenerateUUID(),
+		Name:          name,
+		Email:         email,
+		EmailVerified: emailVerified,
+		Image:         image,
+	}
+
+	if s.hooks != nil && s.hooks.Users != nil && s.hooks.Users.BeforeCreate != nil {
+		if err := s.hooks.Users.BeforeCreate(user); err != nil {
+			return nil, err
 		}
 	}
 
-	if err := s.db.Create(user).Error; err != nil {
-		return err
-	}
-
-	if s.config.DatabaseHooks.Users != nil && s.config.DatabaseHooks.Users.AfterCreate != nil {
-		go func() {
-			if err := s.config.DatabaseHooks.Users.AfterCreate(*user); err != nil {
-				slog.Error("user after create hook failed", "error", err.Error())
-			}
-		}()
-	}
-
-	return nil
-}
-
-// GetUserByID retrieves a user by their ID.
-func (s *UserServiceImpl) GetUserByID(id string) (*models.User, error) {
-	var user models.User
-	if err := s.db.First(&user, "id = ?", id).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
-		}
+	created, err := s.repo.Create(ctx, user)
+	if err != nil {
 		return nil, err
 	}
-	return &user, nil
+
+	if s.hooks != nil && s.hooks.Users != nil && s.hooks.Users.AfterCreate != nil {
+		if err := s.hooks.Users.AfterCreate(*created); err != nil {
+			return nil, err
+		}
+	}
+
+	return created, nil
 }
 
-// GetUserByEmail retrieves a user by their email.
-func (s *UserServiceImpl) GetUserByEmail(email string) (*models.User, error) {
-	var user models.User
-	if err := s.db.Where("email = ?", email).First(&user).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
+func (s *userService) GetByID(ctx context.Context, id string) (*models.User, error) {
+	return s.repo.GetByID(ctx, id)
+}
+
+func (s *userService) GetByEmail(ctx context.Context, email string) (*models.User, error) {
+	return s.repo.GetByEmail(ctx, email)
+}
+
+func (s *userService) Update(ctx context.Context, user *models.User) (*models.User, error) {
+	if s.hooks != nil && s.hooks.Users != nil && s.hooks.Users.BeforeUpdate != nil {
+		if err := s.hooks.Users.BeforeUpdate(user); err != nil {
+			return nil, err
 		}
+	}
+
+	updatedUser, err := s.repo.Update(ctx, user)
+	if err != nil {
 		return nil, err
 	}
-	return &user, nil
-}
 
-// UpdateUser updates an existing user in the database.
-func (s *UserServiceImpl) UpdateUser(user *models.User) error {
-	user.UpdatedAt = time.Now().UTC()
-
-	if s.config.DatabaseHooks.Users != nil && s.config.DatabaseHooks.Users.BeforeUpdate != nil {
-		if err := s.config.DatabaseHooks.Users.BeforeUpdate(user); err != nil {
-			return err
+	if s.hooks != nil && s.hooks.Users != nil && s.hooks.Users.AfterUpdate != nil {
+		if err := s.hooks.Users.AfterUpdate(*updatedUser); err != nil {
+			return nil, err
 		}
 	}
 
-	if err := s.db.Save(user).Error; err != nil {
-		return err
-	}
+	return updatedUser, nil
+}
 
-	if s.config.DatabaseHooks.Users != nil && s.config.DatabaseHooks.Users.AfterUpdate != nil {
-		go func() {
-			if err := s.config.DatabaseHooks.Users.AfterUpdate(*user); err != nil {
-				slog.Error("user after update hook failed", "error", err.Error())
-			}
-		}()
-	}
-
-	return nil
+func (s *userService) UpdateFields(ctx context.Context, id string, fields map[string]any) error {
+	return s.repo.UpdateFields(ctx, id, fields)
 }

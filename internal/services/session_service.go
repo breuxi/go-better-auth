@@ -1,81 +1,113 @@
 package services
 
 import (
-	"log/slog"
+	"context"
+	"fmt"
 	"time"
 
-	"github.com/google/uuid"
-	"gorm.io/gorm"
-
+	"github.com/GoBetterAuth/go-better-auth/internal/repositories"
+	"github.com/GoBetterAuth/go-better-auth/internal/security"
+	"github.com/GoBetterAuth/go-better-auth/internal/util"
 	"github.com/GoBetterAuth/go-better-auth/models"
+	"github.com/GoBetterAuth/go-better-auth/services"
 )
 
-type SessionServiceImpl struct {
-	config *models.Config
-	db     *gorm.DB
+type sessionService struct {
+	repo   repositories.SessionRepository
+	signer security.TokenSigner
+	hooks  *models.CoreDatabaseHooks
 }
 
-func NewSessionServiceImpl(config *models.Config, db *gorm.DB) *SessionServiceImpl {
-	return &SessionServiceImpl{config: config, db: db}
+func NewSessionService(
+	repo repositories.SessionRepository,
+	signer security.TokenSigner,
+	hooks *models.CoreDatabaseHooks,
+) services.SessionService {
+	return &sessionService{
+		repo:   repo,
+		signer: signer,
+		hooks:  hooks,
+	}
 }
 
-// CreateSession creates a new session for a user
-func (s *SessionServiceImpl) CreateSession(userID string, token string) (*models.Session, error) {
-	session := &models.Session{
-		ID:        uuid.NewString(),
-		UserID:    userID,
-		Token:     token,
-		ExpiresAt: time.Now().UTC().Add(7 * 24 * time.Hour),
-		CreatedAt: time.Now().UTC(),
-		UpdatedAt: time.Now().UTC(),
+func (s *sessionService) Create(
+	ctx context.Context,
+	userID string,
+	hashedToken string,
+	ipAddress *string,
+	userAgent *string,
+	maxAge time.Duration,
+) (*models.Session, error) {
+	if hashedToken == "" {
+		return nil, fmt.Errorf("hashedToken cannot be empty")
 	}
 
-	if s.config.DatabaseHooks.Sessions != nil && s.config.DatabaseHooks.Sessions.BeforeCreate != nil {
-		if err := s.config.DatabaseHooks.Sessions.BeforeCreate(session); err != nil {
+	session := &models.Session{
+		ID:        util.GenerateUUID(),
+		UserID:    userID,
+		Token:     hashedToken,
+		ExpiresAt: time.Now().UTC().Add(maxAge),
+		IPAddress: ipAddress,
+		UserAgent: userAgent,
+	}
+
+	if s.hooks != nil && s.hooks.Sessions != nil && s.hooks.Sessions.BeforeCreate != nil {
+		if err := s.hooks.Sessions.BeforeCreate(session); err != nil {
 			return nil, err
 		}
 	}
 
-	if err := s.db.Create(session).Error; err != nil {
+	created, err := s.repo.Create(ctx, session)
+	if err != nil {
 		return nil, err
 	}
 
-	if s.config.DatabaseHooks.Sessions != nil && s.config.DatabaseHooks.Sessions.AfterCreate != nil {
-		go func() {
-			if err := s.config.DatabaseHooks.Sessions.AfterCreate(*session); err != nil {
-				slog.Error("session after create hook failed", "error", err.Error())
-			}
-		}()
-	}
-
-	return session, nil
-}
-
-// GetSessionByUserID retrieves a session by the associated userID.
-func (s *SessionServiceImpl) GetSessionByUserID(userID string) (*models.Session, error) {
-	var sess models.Session
-	if err := s.db.Where("user_id = ?", userID).First(&sess).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
+	if s.hooks != nil && s.hooks.Sessions != nil && s.hooks.Sessions.AfterCreate != nil {
+		if err := s.hooks.Sessions.AfterCreate(*created); err != nil {
+			return nil, err
 		}
-		return nil, err
 	}
-	return &sess, nil
+
+	return created, nil
 }
 
-// GetSessionByToken retrieves a session by its token.
-func (s *SessionServiceImpl) GetSessionByToken(token string) (*models.Session, error) {
-	var sess models.Session
-	if err := s.db.Where("token = ?", token).First(&sess).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
+func (s *sessionService) GetByID(ctx context.Context, id string) (*models.Session, error) {
+	return s.repo.GetByID(ctx, id)
+}
+
+func (s *sessionService) GetByUserID(ctx context.Context, userID string) (*models.Session, error) {
+	return s.repo.GetByUserID(ctx, userID)
+}
+
+func (s *sessionService) GetByToken(ctx context.Context, hashedToken string) (*models.Session, error) {
+	return s.repo.GetByToken(ctx, hashedToken)
+}
+
+func (s *sessionService) Update(ctx context.Context, session *models.Session) (*models.Session, error) {
+	if s.hooks != nil && s.hooks.Sessions != nil && s.hooks.Sessions.BeforeUpdate != nil {
+		if err := s.hooks.Sessions.BeforeUpdate(session); err != nil {
+			return nil, err
 		}
+	}
+
+	updated, err := s.repo.Update(ctx, session)
+	if err != nil {
 		return nil, err
 	}
-	return &sess, nil
+
+	if s.hooks != nil && s.hooks.Sessions != nil && s.hooks.Sessions.AfterUpdate != nil {
+		if err := s.hooks.Sessions.AfterUpdate(*updated); err != nil {
+			return nil, err
+		}
+	}
+
+	return updated, nil
 }
 
-// DeleteSessionByID deletes a session by its ID.
-func (s *SessionServiceImpl) DeleteSessionByID(ID string) error {
-	return s.db.Where("id = ?", ID).Delete(&models.Session{}).Error
+func (s *sessionService) Delete(ctx context.Context, id string) error {
+	return s.repo.Delete(ctx, id)
+}
+
+func (s *sessionService) DeleteAllByUserID(ctx context.Context, userID string) error {
+	return s.repo.DeleteByUserID(ctx, userID)
 }
