@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
+
+	"github.com/GoBetterAuth/go-better-auth/models"
 )
 
 var Validate *validator.Validate
@@ -44,4 +46,14 @@ func ValidateTrustedOrigins(trustedOrigins []string) error {
 	}
 
 	return nil
+}
+
+func ValidateTrustedHeadersAndProxies(logger models.Logger, trustedHeaders []string, trustedProxies []string) {
+	if len(trustedHeaders) > 0 && len(trustedProxies) == 0 {
+		logger.Warn(
+			"Security Warning: TrustedHeaders are defined, but TrustedProxies is empty. " +
+				"The headers will be ignored to prevent IP spoofing. " +
+				"Add your proxy IP to 'trusted_proxies' to enable header extraction.",
+		)
+	}
 }
