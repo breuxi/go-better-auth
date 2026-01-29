@@ -1,6 +1,7 @@
 package csrf
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -9,7 +10,50 @@ import (
 	"github.com/GoBetterAuth/go-better-auth/internal/router"
 	"github.com/GoBetterAuth/go-better-auth/internal/util"
 	"github.com/GoBetterAuth/go-better-auth/models"
+	rootservices "github.com/GoBetterAuth/go-better-auth/services"
 )
+
+type mockServiceRegistry struct {
+	services map[string]any
+}
+
+func newMockServiceRegistry() *mockServiceRegistry {
+	return &mockServiceRegistry{
+		services: make(map[string]any),
+	}
+}
+
+func (m *mockServiceRegistry) Register(name string, service any) {
+	m.services[name] = service
+}
+
+func (m *mockServiceRegistry) Get(name string) any {
+	return m.services[name]
+}
+
+type mockTokenService struct {
+	counter int
+}
+
+func (m *mockTokenService) Generate() (string, error) {
+	m.counter++
+	return "mock-token-" + fmt.Sprintf("%d", m.counter), nil
+}
+
+func (m *mockTokenService) Hash(token string) string {
+	return "hashed-" + token
+}
+
+func (m *mockTokenService) Encrypt(token string) (string, error) {
+	return "encrypted-" + token, nil
+}
+
+func (m *mockTokenService) Decrypt(encrypted string) (string, error) {
+	return encrypted[10:], nil // remove "encrypted-"
+}
+
+// Ensure mockTokenService implements rootservices.TokenService
+var _ rootservices.TokenService = &mockTokenService{}
 
 func TestCSRFCookiePreservedWithSetJSONResponse(t *testing.T) {
 	// Create CSRF plugin
@@ -21,8 +65,11 @@ func TestCSRFCookiePreservedWithSetJSONResponse(t *testing.T) {
 	})
 
 	// Create mock plugin context
+	registry := newMockServiceRegistry()
+	registry.Register(models.ServiceToken.String(), &mockTokenService{})
 	ctx := &models.PluginContext{
-		Logger: util.NewMockLogger(),
+		Logger:          util.NewMockLogger(),
+		ServiceRegistry: registry,
 		GetConfig: func() *models.Config {
 			return &models.Config{
 				Security: models.SecurityConfig{

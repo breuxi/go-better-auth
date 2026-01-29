@@ -11,12 +11,12 @@ import (
 )
 
 type userService struct {
-	repo  repositories.UserRepository
-	hooks *models.CoreDatabaseHooks
+	repo    repositories.UserRepository
+	dbHooks *models.CoreDatabaseHooksConfig
 }
 
-func NewUserService(repo repositories.UserRepository, hooks *models.CoreDatabaseHooks) services.UserService {
-	return &userService{repo: repo, hooks: hooks}
+func NewUserService(repo repositories.UserRepository, dbHooks *models.CoreDatabaseHooksConfig) services.UserService {
+	return &userService{repo: repo, dbHooks: dbHooks}
 }
 
 func (s *userService) Create(ctx context.Context, name string, email string, emailVerified bool, image *string) (*models.User, error) {
@@ -33,8 +33,8 @@ func (s *userService) Create(ctx context.Context, name string, email string, ema
 		Image:         image,
 	}
 
-	if s.hooks != nil && s.hooks.Users != nil && s.hooks.Users.BeforeCreate != nil {
-		if err := s.hooks.Users.BeforeCreate(user); err != nil {
+	if s.dbHooks != nil && s.dbHooks.Users != nil && s.dbHooks.Users.BeforeCreate != nil {
+		if err := s.dbHooks.Users.BeforeCreate(user); err != nil {
 			return nil, err
 		}
 	}
@@ -44,8 +44,8 @@ func (s *userService) Create(ctx context.Context, name string, email string, ema
 		return nil, err
 	}
 
-	if s.hooks != nil && s.hooks.Users != nil && s.hooks.Users.AfterCreate != nil {
-		if err := s.hooks.Users.AfterCreate(*created); err != nil {
+	if s.dbHooks != nil && s.dbHooks.Users != nil && s.dbHooks.Users.AfterCreate != nil {
+		if err := s.dbHooks.Users.AfterCreate(*created); err != nil {
 			return nil, err
 		}
 	}
@@ -62,8 +62,8 @@ func (s *userService) GetByEmail(ctx context.Context, email string) (*models.Use
 }
 
 func (s *userService) Update(ctx context.Context, user *models.User) (*models.User, error) {
-	if s.hooks != nil && s.hooks.Users != nil && s.hooks.Users.BeforeUpdate != nil {
-		if err := s.hooks.Users.BeforeUpdate(user); err != nil {
+	if s.dbHooks != nil && s.dbHooks.Users != nil && s.dbHooks.Users.BeforeUpdate != nil {
+		if err := s.dbHooks.Users.BeforeUpdate(user); err != nil {
 			return nil, err
 		}
 	}
@@ -73,8 +73,8 @@ func (s *userService) Update(ctx context.Context, user *models.User) (*models.Us
 		return nil, err
 	}
 
-	if s.hooks != nil && s.hooks.Users != nil && s.hooks.Users.AfterUpdate != nil {
-		if err := s.hooks.Users.AfterUpdate(*updatedUser); err != nil {
+	if s.dbHooks != nil && s.dbHooks.Users != nil && s.dbHooks.Users.AfterUpdate != nil {
+		if err := s.dbHooks.Users.AfterUpdate(*updatedUser); err != nil {
 			return nil, err
 		}
 	}

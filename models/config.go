@@ -25,8 +25,8 @@ type Config struct {
 	// This allows skipping mapstructure unmarshalling and preserving type safety.
 	// Key: plugin ID, Value: typed config struct passed to Auth.New()
 	PreParsedConfigs map[string]any `json:"-" toml:"-"`
-	// DatabaseHooks allows you to hook into database operations for users, accounts, sessions, and verifications.
-	DatabaseHooks *CoreDatabaseHooks `json:"-" toml:"-"`
+	// CoreDatabaseHooks allows you to hook into database operations for users, accounts, sessions, and verifications.
+	CoreDatabaseHooks *CoreDatabaseHooksConfig `json:"-" toml:"-"`
 }
 
 type DatabaseConfig struct {
@@ -141,7 +141,7 @@ type RouteMapping struct {
 	Plugins []string `json:"plugins" toml:"plugins"`
 }
 
-type CoreDatabaseHooks struct {
+type CoreDatabaseHooksConfig struct {
 	Users         *UserDatabaseHooksConfig
 	Accounts      *AccountDatabaseHooksConfig
 	Sessions      *SessionDatabaseHooksConfig

@@ -72,10 +72,10 @@ func InitCoreServices(config *models.Config, db bun.IDB, serviceRegistry models.
 	verificationRepo := internalrepositories.NewBunVerificationRepository(db)
 	tokenRepo := internalrepositories.NewCryptoTokenRepository(config.Secret)
 
-	userService := internalservices.NewUserService(userRepo, config.DatabaseHooks)
-	accountService := internalservices.NewAccountService(config, accountRepo, tokenRepo, config.DatabaseHooks)
-	sessionService := internalservices.NewSessionService(sessionRepo, signer, config.DatabaseHooks)
-	verificationService := internalservices.NewVerificationService(verificationRepo, signer, config.DatabaseHooks)
+	userService := internalservices.NewUserService(userRepo, config.CoreDatabaseHooks)
+	accountService := internalservices.NewAccountService(config, accountRepo, tokenRepo, config.CoreDatabaseHooks)
+	sessionService := internalservices.NewSessionService(sessionRepo, signer, config.CoreDatabaseHooks)
+	verificationService := internalservices.NewVerificationService(verificationRepo, signer, config.CoreDatabaseHooks)
 	tokenService := internalservices.NewTokenService(tokenRepo)
 
 	serviceRegistry.Register(models.ServiceUser.String(), userService)

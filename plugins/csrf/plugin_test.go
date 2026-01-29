@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/GoBetterAuth/go-better-auth/internal/util"
 	"github.com/GoBetterAuth/go-better-auth/models"
 )
 
@@ -134,6 +135,21 @@ func TestCSRFPlugin_New(t *testing.T) {
 func TestCSRFPlugin_GenerateToken(t *testing.T) {
 	p := New(CSRFPluginConfig{})
 
+	// Mock context for initialization
+	registry := newMockServiceRegistry()
+	registry.Register(models.ServiceToken.String(), &mockTokenService{})
+	ctx := &models.PluginContext{
+		Logger:          util.NewMockLogger(),
+		ServiceRegistry: registry,
+		GetConfig: func() *models.Config {
+			return &models.Config{}
+		},
+	}
+	err := p.Init(ctx)
+	if err != nil {
+		t.Fatalf("failed to init plugin: %v", err)
+	}
+
 	token1, err := p.tokenService.Generate()
 	if err != nil {
 		t.Fatalf("failed to generate token1: %v", err)
@@ -167,6 +183,21 @@ func TestCSRFPlugin_GenerateToken(t *testing.T) {
 func TestCSRFPlugin_SafeMethodGenerateTokenOnce(t *testing.T) {
 	p := New(CSRFPluginConfig{})
 	p.logger = &MockLogger{}
+
+	// Initialize plugin
+	registry := newMockServiceRegistry()
+	registry.Register(models.ServiceToken.String(), &mockTokenService{})
+	initCtx := &models.PluginContext{
+		Logger:          p.logger,
+		ServiceRegistry: registry,
+		GetConfig: func() *models.Config {
+			return &models.Config{}
+		},
+	}
+	initErr := p.Init(initCtx)
+	if initErr != nil {
+		t.Fatalf("failed to init plugin: %v", initErr)
+	}
 
 	hooks := p.Hooks()
 	beforeHook := hooks[0]
@@ -564,20 +595,25 @@ func TestCSRFPlugin_HookOrder(t *testing.T) {
 	p := New(CSRFPluginConfig{})
 	hooks := p.Hooks()
 
-	if len(hooks) != 2 {
-		t.Fatalf("should have 2 hooks, got %d", len(hooks))
+	if len(hooks) != 3 {
+		t.Fatalf("should have 3 hooks, got %d", len(hooks))
 	}
 
 	// After decoupling from hardcoded endpoints, we have:
-	// hooks[0]: Combined generation/validation hook (HookBefore)
-	// hooks[1]: Validation-only fallback hook (HookBefore)
+	// hooks[0]: Token generation hook (HookBefore)
+	// hooks[1]: Token validation hook (HookBefore)
+	// hooks[2]: Token clear hook (HookAfter)
 
 	if hooks[0].Stage != models.HookBefore {
 		t.Errorf("first hook should be HookBefore, got %q", hooks[0].Stage)
 	}
 
 	if hooks[1].Stage != models.HookBefore {
-		t.Errorf("second hook should be HookBefore (validation fallback), got %q", hooks[1].Stage)
+		t.Errorf("second hook should be HookBefore, got %q", hooks[1].Stage)
+	}
+
+	if hooks[2].Stage != models.HookAfter {
+		t.Errorf("third hook should be HookAfter, got %q", hooks[2].Stage)
 	}
 
 	if hooks[0].Order != 5 {
@@ -891,6 +927,21 @@ func TestCSRFPlugin_TokenGenerationRequiresAuthentication(t *testing.T) {
 	p := New(CSRFPluginConfig{})
 	p.logger = &MockLogger{}
 
+	// Initialize plugin
+	registry := newMockServiceRegistry()
+	registry.Register(models.ServiceToken.String(), &mockTokenService{})
+	initCtx := &models.PluginContext{
+		Logger:          p.logger,
+		ServiceRegistry: registry,
+		GetConfig: func() *models.Config {
+			return &models.Config{}
+		},
+	}
+	initErr := p.Init(initCtx)
+	if initErr != nil {
+		t.Fatalf("failed to init plugin: %v", initErr)
+	}
+
 	hooks := p.Hooks()
 	beforeHook := hooks[0]
 
@@ -1187,6 +1238,22 @@ func TestCSRFPlugin_ScopedTokenValidation(t *testing.T) {
 // TestCSRFPlugin_MiddlewareTokenGeneration tests the middleware generates tokens for authenticated users
 func TestCSRFPlugin_MiddlewareTokenGeneration(t *testing.T) {
 	p := New(CSRFPluginConfig{})
+
+	// Initialize plugin
+	registry := newMockServiceRegistry()
+	registry.Register(models.ServiceToken.String(), &mockTokenService{})
+	initCtx := &models.PluginContext{
+		Logger:          &MockLogger{},
+		ServiceRegistry: registry,
+		GetConfig: func() *models.Config {
+			return &models.Config{}
+		},
+	}
+	initErr := p.Init(initCtx)
+	if initErr != nil {
+		t.Fatalf("failed to init plugin: %v", initErr)
+	}
+
 	middleware := p.Middleware()
 
 	// Test authenticated user on GET

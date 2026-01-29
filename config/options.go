@@ -49,12 +49,12 @@ func NewConfig(options ...ConfigOption) *models.Config {
 			MaxIdleConns:    5,
 			ConnMaxLifetime: time.Minute * 10,
 		},
-		Logger:           models.LoggerConfig{},
-		EventBus:         models.EventBusConfig{},
-		Plugins:          models.PluginsConfig{},
-		RouteMappings:    []models.RouteMapping{},
-		PreParsedConfigs: make(map[string]any),
-		DatabaseHooks:    nil,
+		Logger:            models.LoggerConfig{},
+		EventBus:          models.EventBusConfig{},
+		Plugins:           models.PluginsConfig{},
+		RouteMappings:     []models.RouteMapping{},
+		PreParsedConfigs:  make(map[string]any),
+		CoreDatabaseHooks: nil,
 	}
 
 	// Apply the options - they override defaults only if non-zero/non-empty
@@ -249,9 +249,9 @@ func WithRouteMappings(config []models.RouteMapping) ConfigOption {
 	}
 }
 
-func WithDatabaseHooks(config *models.CoreDatabaseHooks) ConfigOption {
+func WithCoreDatabaseHooks(config *models.CoreDatabaseHooksConfig) ConfigOption {
 	return func(c *models.Config) {
-		c.DatabaseHooks = config
+		c.CoreDatabaseHooks = config
 	}
 }
 
