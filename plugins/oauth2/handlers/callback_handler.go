@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/GoBetterAuth/go-better-auth/models"
@@ -93,13 +94,15 @@ func (h *CallbackHandler) Handler() http.HandlerFunc {
 			return
 		}
 
+		secure := r.TLS != nil || strings.EqualFold(r.Header.Get("X-Forwarded-Proto"), "https")
+
 		// Clear cookies
 		http.SetCookie(reqCtx.ResponseWriter, &http.Cookie{
 			Name:     constants.CookieState,
 			Value:    "",
 			Path:     "/",
 			HttpOnly: true,
-			Secure:   true,
+			Secure:   secure,
 			SameSite: http.SameSiteLaxMode,
 			MaxAge:   -1,
 		})
@@ -108,7 +111,7 @@ func (h *CallbackHandler) Handler() http.HandlerFunc {
 			Value:    "",
 			Path:     "/",
 			HttpOnly: true,
-			Secure:   true,
+			Secure:   secure,
 			SameSite: http.SameSiteLaxMode,
 			MaxAge:   -1,
 		})
@@ -117,7 +120,7 @@ func (h *CallbackHandler) Handler() http.HandlerFunc {
 			Value:    "",
 			Path:     "/",
 			HttpOnly: true,
-			Secure:   true,
+			Secure:   secure,
 			SameSite: http.SameSiteLaxMode,
 			MaxAge:   -1,
 		})

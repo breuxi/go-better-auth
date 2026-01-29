@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/GoBetterAuth/go-better-auth/models"
@@ -46,13 +47,14 @@ func (h *AuthorizeHandler) Handler() http.HandlerFunc {
 			return
 		}
 
-		// Set cookies
+		secure := r.TLS != nil || strings.EqualFold(r.Header.Get("X-Forwarded-Proto"), "https")
+
 		http.SetCookie(reqCtx.ResponseWriter, &http.Cookie{
 			Name:     constants.CookieState,
 			Value:    resp.StateCookie,
 			Path:     "/",
 			HttpOnly: true,
-			Secure:   true,
+			Secure:   secure,
 			SameSite: http.SameSiteLaxMode,
 			MaxAge:   int(time.Minute.Seconds()) * 5,
 		})
@@ -61,7 +63,7 @@ func (h *AuthorizeHandler) Handler() http.HandlerFunc {
 			Value:    resp.RedirectCookie,
 			Path:     "/",
 			HttpOnly: true,
-			Secure:   true,
+			Secure:   secure,
 			SameSite: http.SameSiteLaxMode,
 			MaxAge:   int(time.Minute.Seconds()) * 5,
 		})
@@ -71,7 +73,7 @@ func (h *AuthorizeHandler) Handler() http.HandlerFunc {
 				Value:    *resp.VerifierCookie,
 				Path:     "/",
 				HttpOnly: true,
-				Secure:   true,
+				Secure:   secure,
 				SameSite: http.SameSiteLaxMode,
 				MaxAge:   int(time.Minute.Seconds()) * 5,
 			})
