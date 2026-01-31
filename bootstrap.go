@@ -43,11 +43,11 @@ func InitEventBus(config *models.Config) (models.EventBus, error) {
 	// Default to gochannel if not specified
 	provider := config.EventBus.Provider
 	if provider == "" {
-		provider = events.ProviderGoChannel.String()
+		provider = events.ProviderGoChannel
 	}
 
 	eventBusConfig := config.EventBus
-	if provider == events.ProviderGoChannel.String() && eventBusConfig.GoChannel == nil {
+	if provider == events.ProviderGoChannel && eventBusConfig.GoChannel == nil {
 		eventBusConfig.GoChannel = &models.GoChannelConfig{
 			BufferSize: 100,
 		}

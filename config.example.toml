@@ -212,21 +212,21 @@ request_email_change_expires_in = "1h"
 # client_id = "your-client-id"
 # client_secret = "your-client-secret"
 # redirect_url = "http://localhost:8080/auth/oauth2/callback/discord"
-# scopes = ["email", "identify"]
+# scopes = []
 
 # [plugins.oauth2.providers.github]
 # enabled = true
 # client_id = "your-client-id"
 # client_secret = "your-client-secret"
 # redirect_url = "http://localhost:8080/auth/oauth2/callback/github"
-# scopes = ["user:email"]
+# scopes = []
 
 # [plugins.oauth2.providers.google]
 # enabled = true
 # client_id = "your-client-id"
 # client_secret = "your-client-secret"
 # redirect_url = "http://localhost:8080/auth/oauth2/callback/google"
-# scopes = ["openid", "email", "profile"]
+# scopes = []
 
 # Example: Additional fields for a custom OAuth2 provider
 # auth_url = "https://provider.com/oauth2/authorize"
@@ -271,6 +271,7 @@ enabled = true
 # enabled = true
 # algorithm = "eddsa"
 # key_rotation_interval = "720h"
+# key_rotation_grace_period = "1h"
 # expires_in = "15m"
 # refresh_expires_in = "168h"
 # jwks_cache_ttl = "5m"

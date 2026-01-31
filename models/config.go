@@ -2,6 +2,8 @@ package models
 
 import (
 	"time"
+
+	"github.com/GoBetterAuth/go-better-auth/events"
 )
 
 // Config holds the core configuration for GoBetterAuth.
@@ -68,16 +70,16 @@ type CORSConfig struct {
 }
 
 type EventBusConfig struct {
-	Prefix                string            `json:"prefix" toml:"prefix"`
-	MaxConcurrentHandlers int               `json:"max_concurrent_handlers" toml:"max_concurrent_handlers"`
-	Provider              string            `json:"provider" toml:"provider"`
-	GoChannel             *GoChannelConfig  `json:"go_channel" toml:"go_channel"`
-	SQLite                *SQLiteConfig     `json:"sqlite" toml:"sqlite"`
-	PostgreSQL            *PostgreSQLConfig `json:"postgres" toml:"postgres"`
-	Redis                 *RedisConfig      `json:"redis" toml:"redis"`
-	Kafka                 *KafkaConfig      `json:"kafka" toml:"kafka"`
-	NATS                  *NatsConfig       `json:"nats" toml:"nats"`
-	RabbitMQ              *RabbitMQConfig   `json:"rabbitmq" toml:"rabbitmq"`
+	Prefix                string                  `json:"prefix" toml:"prefix"`
+	MaxConcurrentHandlers int                     `json:"max_concurrent_handlers" toml:"max_concurrent_handlers"`
+	Provider              events.EventBusProvider `json:"provider" toml:"provider"`
+	GoChannel             *GoChannelConfig        `json:"go_channel" toml:"go_channel"`
+	SQLite                *SQLiteConfig           `json:"sqlite" toml:"sqlite"`
+	PostgreSQL            *PostgreSQLConfig       `json:"postgres" toml:"postgres"`
+	Redis                 *RedisConfig            `json:"redis" toml:"redis"`
+	Kafka                 *KafkaConfig            `json:"kafka" toml:"kafka"`
+	NATS                  *NatsConfig             `json:"nats" toml:"nats"`
+	RabbitMQ              *RabbitMQConfig         `json:"rabbitmq" toml:"rabbitmq"`
 }
 
 type GoChannelConfig struct {

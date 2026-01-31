@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/GoBetterAuth/go-better-auth/env"
+	"github.com/GoBetterAuth/go-better-auth/events"
 	"github.com/GoBetterAuth/go-better-auth/models"
 )
 
@@ -49,8 +50,11 @@ func NewConfig(options ...ConfigOption) *models.Config {
 			MaxIdleConns:    5,
 			ConnMaxLifetime: time.Minute * 10,
 		},
-		Logger:            models.LoggerConfig{},
-		EventBus:          models.EventBusConfig{},
+		Logger: models.LoggerConfig{},
+		EventBus: models.EventBusConfig{
+			Provider:  events.ProviderGoChannel,
+			GoChannel: &models.GoChannelConfig{},
+		},
 		Plugins:           models.PluginsConfig{},
 		RouteMappings:     []models.RouteMapping{},
 		PreParsedConfigs:  make(map[string]any),
@@ -116,6 +120,36 @@ func WithSecret(secret string) ConfigOption {
 	}
 }
 
+func WithDatabase(config models.DatabaseConfig) ConfigOption {
+	return func(c *models.Config) {
+		if config.Provider != "" {
+			c.Database.Provider = config.Provider
+		}
+		if envValue := os.Getenv(env.EnvDatabaseURL); envValue != "" {
+			c.Database.URL = envValue
+		} else if config.URL != "" {
+			c.Database.URL = config.URL
+		}
+		if config.MaxOpenConns != 0 {
+			c.Database.MaxOpenConns = config.MaxOpenConns
+		}
+		if config.MaxIdleConns != 0 {
+			c.Database.MaxIdleConns = config.MaxIdleConns
+		}
+		if config.ConnMaxLifetime != 0 {
+			c.Database.ConnMaxLifetime = config.ConnMaxLifetime
+		}
+	}
+}
+
+func WithLogger(config models.LoggerConfig) ConfigOption {
+	return func(c *models.Config) {
+		if config.Level != "" {
+			c.Logger.Level = config.Level
+		}
+	}
+}
+
 func WithSession(config models.SessionConfig) ConfigOption {
 	return func(c *models.Config) {
 		if config.CookieName != "" {
@@ -171,36 +205,6 @@ func WithSecurity(config models.SecurityConfig) ConfigOption {
 		c.Security.CORS.AllowCredentials = config.CORS.AllowCredentials
 		if config.CORS.MaxAge != 0 {
 			c.Security.CORS.MaxAge = config.CORS.MaxAge
-		}
-	}
-}
-
-func WithDatabase(config models.DatabaseConfig) ConfigOption {
-	return func(c *models.Config) {
-		if config.Provider != "" {
-			c.Database.Provider = config.Provider
-		}
-		if envValue := os.Getenv(env.EnvDatabaseURL); envValue != "" {
-			c.Database.URL = envValue
-		} else if config.URL != "" {
-			c.Database.URL = config.URL
-		}
-		if config.MaxOpenConns != 0 {
-			c.Database.MaxOpenConns = config.MaxOpenConns
-		}
-		if config.MaxIdleConns != 0 {
-			c.Database.MaxIdleConns = config.MaxIdleConns
-		}
-		if config.ConnMaxLifetime != 0 {
-			c.Database.ConnMaxLifetime = config.ConnMaxLifetime
-		}
-	}
-}
-
-func WithLogger(config models.LoggerConfig) ConfigOption {
-	return func(c *models.Config) {
-		if config.Level != "" {
-			c.Logger.Level = config.Level
 		}
 	}
 }
