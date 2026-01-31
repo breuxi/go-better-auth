@@ -102,9 +102,9 @@ Embed GoBetterAuth directly into your Go application:
 
 ```go
 import (
-  gobetterauth "github.com/GoBetterAuth/go-better-auth"
-  gobetterauthconfig "github.com/GoBetterAuth/go-better-auth/config"
-  gobetterauthmodels "github.com/GoBetterAuth/go-better-auth/models"
+  gobetterauth "github.com/GoBetterAuth/go-better-auth/v2"
+  gobetterauthconfig "github.com/GoBetterAuth/go-better-auth/v2/config"
+  gobetterauthmodels "github.com/GoBetterAuth/go-better-auth/v2/models"
 )
 
 config := gobetterauthconfig.NewConfig(
