@@ -1,15 +1,30 @@
 <p align="center">
-  <img src="./project-logo.png" height="150" width="150" alt="Project Logo"/>
+  <img src="./project-logo.png" height="150" width="150" alt="GoBetterAuth Logo"/>
 </p>
 
----
+<div align="center">
+  <a href="https://www.npmjs.com/package/go-better-auth" target="_parent">
+    <img src="https://img.shields.io/npm/dm/go-better-auth.svg" alt="Node.js SDK downloads" />
+  </a>
+  <a href="https://github.com/GoBetterAuth/go-better-auth/stargazers" target="_parent">
+    <img src="https://img.shields.io/github/stars/GoBetterAuth/go-better-auth.svg?style=social&label=Star" alt="GitHub stars" />
+  </a>
+  <a href="https://goreportcard.com/report/github.com/GoBetterAuth/go-better-auth" target="_parent">
+    <img src="https://goreportcard.com/badge/github.com/GoBetterAuth/go-better-auth" alt="Go Report Card" />
+  </a>
+  <a href="https://pkg.go.dev/github.com/GoBetterAuth/go-better-auth" target="_parent">
+    <img src="https://pkg.go.dev/badge/github.com/GoBetterAuth/go-better-auth.svg" alt="Go Reference" />
+  </a>
+  <a href="https://github.com/GoBetterAuth/go-better-auth/blob/main/LICENSE" target="_parent">
+    <img src="https://img.shields.io/github/license/GoBetterAuth/go-better-auth.svg" alt="License" />
+  </a>
+</div>
 
-### Table of Contents
+<div align="center">
 
-1.  [Introduction](#introduction)
-1.  [Features](#features)
-1.  [Docs](#docs)
-1.  [Contributing](#contributing)
+### [Become a Sponsor!](https://buy.polar.sh/polar_cl_Q8rpefucf3fmnRTTeIvPCiE6ZvfMKclwxlyOz283ZC7)
+
+</div>
 
 ---
 
@@ -17,7 +32,9 @@
 
 ✨ Overview
 
-**GoBetterAuth** is an open-source authentication solution that scales with you. Embed it as a library in your Go app, or run it as a standalone auth server with any tech stack. All functionality is delivered through a powerful plugin system, allowing you to compose exactly the authentication stack you need — no more, no less, all built with clean architecture. **GoBetterAuth** is flexible enough to integrate with any technology stack. It streamlines the implementation of essential security features through a clean, modular architecture, allowing developers to concentrate on building their applications without the overhead of managing authentication complexities.
+**GoBetterAuth** is an open-source authentication solution that scales with you. Embed it as a library in your Go app, or run it as a standalone auth server with any tech stack. It simplifies adding robust authentication to backend services, empowering developers to build secure applications faster.
+
+All functionality is delivered through a powerful plugin system, allowing you to compose exactly the authentication stack you need — no more, no less, all built with clean architecture. **GoBetterAuth** is flexible enough to integrate with any technology stack. It streamlines the implementation of essential security features through a clean, modular architecture, allowing developers to concentrate on building their applications without the overhead of managing authentication complexities.
 
 ---
 
@@ -51,7 +68,9 @@ This design empowers you to build secure, maintainable, and highly customizable 
 
 ---
 
-### Features via Plugins
+### Features
+
+GoBetterAuth comes with a variety of plugins that provide essential authentication features out of the box:
 
 - 📧 Email & Password: Authentication, Email Verification & Password Reset
 - 🌐 OAuth providers
@@ -65,7 +84,7 @@ This design empowers you to build secure, maintainable, and highly customizable 
 
 ---
 
-### 🪝 Hooks System
+### Hooks System
 
 GoBetterAuth includes a powerful, lifecycle-based hooks system that lets you intercept and customize request handling at every stage of the HTTP pipeline.
 
@@ -94,9 +113,9 @@ Build your own plugins for:
 
 ---
 
-### ⚙️ Deployment Modes
+### Deployment Modes
 
-### Embedded Mode (Go Library)
+`Embedded Mode (Go Library)`
 
 Embed GoBetterAuth directly into your Go application:
 
@@ -137,14 +156,13 @@ You get:
 
 ---
 
-### Server Mode (Standalone Auth Server)
+`Standalone Mode`
 
 Run GoBetterAuth as a standalone authentication server via Docker:
 
 ```bash
 docker run -itd -p 8080:8080 \
   -v $(pwd)/config.toml:/home/appuser/config.toml \
-  -e GO_BETTER_AUTH_ADMIN_API_KEY=my-admin-api-key \
   -e GO_BETTER_AUTH_BASE_URL=http://localhost:8080 \
   -e GO_BETTER_AUTH_SECRET=my-app-secret \
   -e GO_BETTER_AUTH_DATABASE_URL=<your_connection_string> \
@@ -193,6 +211,14 @@ For more info and a full guide on how to use this library, check out the [Docs](
 
 ---
 
+### SDKs
+
+We provide the following SDKs to facilitate easy integration with GoBetterAuth:
+
+- [Node.js SDK](https://github.com/GoBetterAuth/go-better-auth-node-sdk)
+
+---
+
 ### Contributing
 
 Your contributions are welcome! Here's how you can get involved:
@@ -208,5 +234,25 @@ Your contributions are welcome! Here's how you can get involved:
 Join our growing community for support, discussions, and updates:
 
 - [Discord Server](https://discord.gg/nThBksdr2Z)
+
+---
+
+### 💎 Support Development
+
+If you'd like to support the ongoing development of this project, consider subscribing on Polar, it means a lot to me!
+
+[![Subscribe on Polar](https://img.shields.io/badge/Subscribe-on%20Polar-00d1ff?style=for-the-badge&logo=polar&logoColor=white)](https://buy.polar.sh/polar_cl_Q8rpefucf3fmnRTTeIvPCiE6ZvfMKclwxlyOz283ZC7)
+
+---
+
+### 💖 Our Sponsors
+
+#### 🏢 Corporate Sponsors
+
+#### 🥇 Gold Sponsors
+
+#### 🥈 Silver Sponsors
+
+#### 🥉 Bronze Sponsors
 
 ---
