@@ -12,8 +12,8 @@
   <a href="https://goreportcard.com/report/github.com/GoBetterAuth/go-better-auth" target="_parent">
     <img src="https://goreportcard.com/badge/github.com/GoBetterAuth/go-better-auth" alt="Go Report Card" />
   </a>
-  <a href="https://pkg.go.dev/github.com/GoBetterAuth/go-better-auth" target="_parent">
-    <img src="https://pkg.go.dev/badge/github.com/GoBetterAuth/go-better-auth.svg" alt="Go Reference" />
+  <a href="https://pkg.go.dev/github.com/GoBetterAuth/go-better-auth/v2" target="_parent">
+    <img src="https://pkg.go.dev/badge/github.com/GoBetterAuth/go-better-auth/v2.svg" alt="Go Reference" />
   </a>
   <a href="https://github.com/GoBetterAuth/go-better-auth/blob/main/LICENSE" target="_parent">
     <img src="https://img.shields.io/github/license/GoBetterAuth/go-better-auth.svg" alt="License" />
