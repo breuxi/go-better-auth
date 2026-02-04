@@ -42,7 +42,9 @@ func (uc *SignUpUseCase) SignUp(
 		return nil, constants.ErrInvalidPasswordLength
 	}
 
-	if existing, _ := uc.UserService.GetByEmail(ctx, email); existing != nil {
+	if existing, err := uc.UserService.GetByEmail(ctx, email); err != nil {
+		return nil, err
+	} else if existing != nil {
 		return nil, constants.ErrEmailAlreadyExists
 	}
 
