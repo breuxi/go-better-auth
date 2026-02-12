@@ -3,6 +3,7 @@ package gobetterauth
 import (
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"testing"
 
 	"github.com/GoBetterAuth/go-better-auth/v2/internal/util"
@@ -640,6 +641,84 @@ func TestDoubleBasePathApplication(t *testing.T) {
 		if seg != expectedSegments[i] {
 			t.Errorf("segment %d: expected %q, got %q", i, expectedSegments[i], seg)
 		}
+	}
+}
+
+func TestRouteGroupMetadata(t *testing.T) {
+	config := &models.Config{
+		BasePath: "/",
+	}
+	logger := &testLogger{}
+	router := NewRouter(config, logger, nil)
+
+	router.RegisterCustomRouteGroup(
+		models.RouteGroup{
+			Path: "/test",
+			Routes: []models.Route{
+				{Method: "GET", Path: "", Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})},
+				{Method: "GET", Path: "/metadata", Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}),
+					Metadata: map[string]any{
+						"plugins": []string{
+							"bearer.auth",
+						},
+					},
+				},
+			},
+			Metadata: map[string]any{
+				"plugins": []string{
+					"session.auth",
+				},
+			},
+		},
+	)
+
+	testPluginsAny := router.routeMetadata["GET:/test"]["plugins"]
+	testPlugins := testPluginsAny.([]string)
+
+	if !slices.Contains(testPlugins, "session.auth") {
+		t.Errorf("expected session.auth in plugins, got %s", testPlugins)
+	}
+
+	metadataPluginsAny := router.routeMetadata["GET:/test/metadata"]["plugins"]
+	metadataPlugins := metadataPluginsAny.([]string)
+
+	if !(slices.Contains(metadataPlugins, "session.auth") && slices.Contains(metadataPlugins, "bearer.auth")) {
+		t.Errorf("expected session.auth and bearer.auth in plugins, got %s", metadataPlugins)
+	}
+}
+
+func TestRouteGroupMetadataDuplicatePlugins(t *testing.T) {
+	config := &models.Config{
+		BasePath: "/",
+	}
+	logger := &testLogger{}
+	router := NewRouter(config, logger, nil)
+
+	router.RegisterCustomRouteGroup(
+		models.RouteGroup{
+			Path: "/test",
+			Routes: []models.Route{
+				{Method: "GET", Path: "", Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}),
+					Metadata: map[string]any{
+						"plugins": []string{
+							"session.auth",
+						},
+					},
+				},
+			},
+			Metadata: map[string]any{
+				"plugins": []string{
+					"session.auth",
+				},
+			},
+		},
+	)
+
+	testPluginsAny := router.routeMetadata["GET:/test"]["plugins"]
+	testPlugins := testPluginsAny.([]string)
+
+	if len(testPlugins) != 1 {
+		t.Errorf("expected only one plugin, got %d %s", len(testPlugins), testPlugins)
 	}
 }
 

@@ -136,6 +136,56 @@ func (r *Router) RegisterCustomRoute(route models.Route) {
 	r.registerRouteWithPrefix("", route)
 }
 
+// RegisterCustomRouteGroup simplifies the management of multiple routes, by allowing to assign a base path and metadata to all child routes.
+func (r *Router) RegisterCustomRouteGroup(group models.RouteGroup) {
+	for _, route := range group.Routes {
+		if route.Metadata != nil {
+			newMetadata := maps.Clone(group.Metadata)
+
+			for key, value := range route.Metadata {
+				if key == "plugins" {
+					groupPlugins, ok := newMetadata["plugins"].([]string)
+					if !ok {
+						continue
+					}
+
+					routePlugins, ok := value.([]string)
+					if !ok {
+						continue
+					}
+
+					pluginsSeen := make(map[string]bool)
+					combinedPlugins := make([]string, 0, len(groupPlugins)+len(routePlugins))
+
+					// Add all group plugins
+					for _, plugin := range groupPlugins {
+						combinedPlugins = append(combinedPlugins, plugin)
+						pluginsSeen[plugin] = true
+					}
+
+					// Add route plugins only if not already seen
+					for _, plugin := range routePlugins {
+						if !pluginsSeen[plugin] {
+							combinedPlugins = append(combinedPlugins, plugin)
+							pluginsSeen[plugin] = true
+						}
+					}
+
+					newMetadata["plugins"] = combinedPlugins
+				} else {
+					newMetadata[key] = value
+				}
+			}
+
+			route.Metadata = newMetadata
+		} else {
+			route.Metadata = group.Metadata
+		}
+
+		r.registerRouteWithPrefix(group.Path, route)
+	}
+}
+
 // RegisterRoutes registers multiple routes with an optional base path
 func (r *Router) RegisterRoutes(routes []models.Route) {
 	for _, route := range routes {

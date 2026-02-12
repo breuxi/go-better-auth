@@ -194,6 +194,12 @@ func (auth *Auth) RegisterCustomRoute(route models.Route) {
 	auth.router.RegisterCustomRoute(route)
 }
 
+// RegisterCustomRouteGroup registers a route group that can have a prefix path and metadata that applies to all routes
+// This is useful if many routes should share paths and or metadata
+func (auth *Auth) RegisterCustomRouteGroup(group models.RouteGroup) {
+	auth.router.RegisterCustomRouteGroup(group)
+}
+
 // RegisterCustomRoutes registers multiple custom routes without the basePath prefix
 // This is useful for application routes that should not be under the auth basePath
 func (auth *Auth) RegisterCustomRoutes(routes []models.Route) {

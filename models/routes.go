@@ -13,3 +13,9 @@ type Route struct {
 	// custom tags, and plugin-specific attributes for conditional hook execution.
 	Metadata map[string]any
 }
+
+type RouteGroup struct {
+	Path     string
+	Routes   []Route
+	Metadata map[string]any
+}
